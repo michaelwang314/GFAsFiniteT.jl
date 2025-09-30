@@ -4,9 +4,9 @@ module GFAsFiniteT
     using LinearAlgebra
 
     export Body, Particle, RigidBody, rotate!, translate!
-    export NeighborList, BondList, LinkedCellList
+    export NeighborList, BondList, LinkedCellList, create_interaction_matrix, bind_closest, rigid_bodies_to_particle_list, get_particles_with_id
     export Interaction, LennardJones, Morse, HarmonicBond
-    export Integrator
+    export Integrator, Brownian
     export System
 
     """
