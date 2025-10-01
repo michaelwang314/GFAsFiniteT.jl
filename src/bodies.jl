@@ -29,18 +29,18 @@ mutable struct RigidBody <: Body
     particles::Vector{Particle}
     
     axes::MVector{3, MVector{3, Float64}}
-    γ_rot::SVector{3, Float64}
+    moments::SVector{3, Float64}
     γ_trans::Float64
 
     id::String
 end
 
-function RigidBody(centroid::Vector{Float64}, particles::Vector{Particle}, axes::Vector{Vector{Float64}}, γ_rot::Vector{Float64}, γ_trans::Float64, id::String)
+function RigidBody(centroid::Vector{Float64}, particles::Vector{Particle}, axes::Vector{Vector{Float64}}, moments::Vector{Float64}, γ_trans::Float64, id::String)
     for particle in particles
         particle.body_id = id
     end
     
-    return RigidBody(centroid, particles, axes, γ_rot, γ_trans, id)
+    return RigidBody(centroid, particles, axes, moments, γ_trans, id)
 end
 
 function RigidBody(particles::Vector{Particle}, id::String)
@@ -59,10 +59,10 @@ function RigidBody(particles::Vector{Particle}, id::String)
     end
     centroid ./= γ_total
 
-    γ_rot, evecs = eigvals(I), eigvecs(I)
+    moments, evecs = eigvals(I), eigvecs(I)
     axes = [evecs[:, 1], evecs[:, 2], evecs[:, 3]]
 
-    return RigidBody(centroid, particles, axes, γ_rot, γ_total, id)
+    return RigidBody(centroid, particles, axes, moments, γ_total, id)
 end
 RigidBody(particles::Vector{Particle}) = RigidBody(particles, "")
 

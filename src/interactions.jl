@@ -17,21 +17,17 @@ mutable struct LennardJones <: Interaction
     multithreaded::Bool
 end
 
-function LennardJones(ϵs::Vector{Tuple{String, String, Float64}}, σs::Vector{Tuple{String, String, Float64}}, r_cuts::Vector{Tuple{String, String, Float64}}, 
-                      particles::Vector{Particle}, neighbor_list::LinkedCellList, interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}, 
-                      multithreaded::Bool)
+function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+                      interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}, multithreaded::Bool)
     ϵ = Dict{Tuple{String, String}, Float64}()
     σ = Dict{Tuple{String, String}, Float64}()
     r_cut = Dict{Tuple{String, String}, Float64}()
-    for (id1, id2, val) in ϵs
-        ϵ[id1, id2] = ϵ[id2, id1] = val
+    for (id1, id2, vals) in params
+        ϵ[id1, id2] = ϵ[id2, id1] = vals["ϵ"]
+        σ[id1, id2] = σ[id2, id1] = vals["σ"]
+        r_cut[id1, id2] = r_cut[id2, id1] = vals["r_cut"]
     end
-    for (id1, id2, val) in σs
-        σ[id1, id2] = σ[id2, id1] = val
-    end
-    for (id1, id2, val) in r_cuts
-        r_cut[id1, id2] = r_cut[id2, id1] = val
-    end
+
     return LennardJones(ϵ, σ, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
 
@@ -49,7 +45,7 @@ function compute_force!(lj::LennardJones)
             while id > 0
                 neighbor = lj.neighbor_list.particles[index]
                 if isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id
-                    Δx, Δy, Δz = wrap_displacement(particle.position[1] - neighbor.position[1], particle.position[2] - neighbor.position[2], particle.position[3] - neighbor.position[3], lj.box)
+                    Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], lj.box)
                     
                     Δr² = Δx^2 + Δy^2 + Δz^2
                     if lj.interaction_matrix[particle.id, neighbor.id] && 0.0 < Δr² < lj.r_cut[particle.id, neighbor.id]^2
@@ -85,24 +81,19 @@ mutable struct Morse <: Interaction
     multithreaded::Bool
 end
 
-function Morse(D0s::Vector{Tuple{String, String, Float64}}, αs::Vector{Tuple{String, String, Float64}}, r0s::Vector{Tuple{String, String, Float64}}, r_cuts::Vector{Tuple{String, String, Float64}}, 
-               particles::Vector{Particle}, neighbor_list::LinkedCellList, interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}, 
-               multithreaded::Bool)
+function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+               interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}, multithreaded::Bool)
     D0 = Dict{Tuple{String, String}, Float64}()
     α = Dict{Tuple{String, String}, Float64}()
+    r0 = Dict{Tuple{String, String}, Float64}()
     r_cut = Dict{Tuple{String, String}, Float64}()
-    for (id1, id2, val) in D0s
-        D0[id1, id2] = D0[id2, id1] = val
+    for (id1, id2, vals) in params
+        D0[id1, id2] = D0[id2, id1] = vals["D0"]
+        α[id1, id2] = α[id2, id1] = vals["α"]
+        r0[id1, id2] = r0[id2, id1] = vals["r0"]
+        r_cut[id1, id2] = r_cut[id2, id1] = vals["r_cut"]
     end
-    for (id1, id2, val) in αs
-        α[id1, id2] = α[id2, id1] = val
-    end
-    for (id1, id2, val) in r0s
-        r0[id1, id2] = r0[id2, id1] = val
-    end
-    for (id1, id2, val) in r_cuts
-        r_cut[id1, id2] = r_cut[id2, id1] = val
-    end
+
     return Morse(D0, α, r0, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
 
@@ -120,7 +111,7 @@ function compute_force!(m::Morse)
             while id > 0
                 neighbor = m.neighbor_list.particles[index]
                 if isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id
-                    Δx, Δy, Δz = wrap_displacement(particle.position[1] - neighbor.position[1], particle.position[2] - neighbor.position[2], particle.position[3] - neighbor.position[3], m.box)
+                    Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], m.box)
                     
                     Δr² = Δx^2 + Δy^2 + Δz^2
                     if m.interaction_matrix[particle.id, neighbor.id] && 0.0 < Δr² < m.r_cut[particle.id, neighbor.id]^2
