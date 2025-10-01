@@ -27,7 +27,7 @@ function test_cell_lists()
     body_id = 1
     for Δr in [[0.5, 0.5, 0.0], [-0.5, 0.5, 0.0], [-0.5, -0.5, 0.0], [0.5, -0.5, 0.0]]
         new_rigid_body = deepcopy(rigid_body)
-        set_rigid_body_id!(new_rigid_body, "body $(body_id)")
+        set_body_ids!(new_rigid_body, "body $(body_id)")
         translate!(new_rigid_body, Δr .+ [2.0, 2.0, 2.0])
 
         push!(rigid_bodies, new_rigid_body)

@@ -20,6 +20,10 @@ end
 Particle(position::Vector{Float64}, γ::Float64, id::String) = Particle(position, [0.0, 0.0, 0.0], γ, id, nothing)
 Particle(position::Vector{Float64}, id::String) = Particle(position, [0.0, 0.0, 0.0], 1.0, id, nothing)
 
+###########################################################################################################################################
+# 
+###########################################################################################################################################
+
 mutable struct RigidBody <: Body
     centroid::MVector{3, Float64}
     particles::Vector{Particle}
@@ -31,19 +35,12 @@ mutable struct RigidBody <: Body
     id::String
 end
 
-###########################################################################################################################################
-# 
-###########################################################################################################################################
-
-function RigidBody(particles::Vector{Particle}, axes::Vector{Vector{Float64}}, γ_rot::Vector{Float64}, γ_trans::Float64, id::String)
-    position = MVector{3}(0.0, 0.0, 0.0)
+function RigidBody(centroid::Vector{Float64}, particles::Vector{Particle}, axes::Vector{Vector{Float64}}, γ_rot::Vector{Float64}, γ_trans::Float64, id::String)
     for particle in particles
-        position .+= particle.position
         particle.body_id = id
     end
-    position ./= length(particles)
-
-    return RigidBody(position, particles, axes, γ_rot, γ_trans, id)
+    
+    return RigidBody(centroid, particles, axes, γ_rot, γ_trans, id)
 end
 
 function RigidBody(particles::Vector{Particle}, id::String)
@@ -67,6 +64,7 @@ function RigidBody(particles::Vector{Particle}, id::String)
 
     return RigidBody(centroid, particles, axes, γ_rot, γ_total, id)
 end
+RigidBody(particles::Vector{Particle}) = RigidBody(particles, "")
 
 function rotate!(body::RigidBody, axis_x::Float64, axis_y::Float64, axis_z::Float64, θ::Float64)
     sin, cos = sincos(θ)
@@ -145,7 +143,7 @@ translate!(bodies::Vector{RigidBody}, Δr::Vector{Float64}) = translate!(bodies,
 # Additional functions
 ###########################################################################################################################################
 
-function set_rigid_body_id!(body::RigidBody, id::String)
+function set_body_ids!(body::RigidBody, id::String)
     body.id = id
     for particle in body.particles
         particle.body_id = id

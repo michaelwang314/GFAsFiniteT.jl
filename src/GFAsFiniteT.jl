@@ -3,7 +3,7 @@ module GFAsFiniteT
     using Serialization
     using LinearAlgebra
 
-    export Body, Particle, RigidBody, rotate!, translate!, set_rigid_body_id!, rigid_bodies_to_particle_list, get_particles_with_id
+    export Body, Particle, RigidBody, rotate!, translate!, set_body_ids!, rigid_bodies_to_particle_list, get_particles_with_id
     export NeighborList, BondList, LinkedCellList, bind_closest, update_cell_list!
     export Interaction, LennardJones, Morse, HarmonicBond, compute_force!, wrap_displacement, create_interaction_matrix
     export Integrator, Brownian
@@ -16,6 +16,16 @@ module GFAsFiniteT
     @inline function println(io::IO, args...)
         Base.println(io, args...)
         flush(io)
+    end
+
+    macro use_threads(multithreaded::Union{Expr, Symbol}, expr::Expr)
+        esc(quote
+            if $multithreaded
+                Threads.@threads $expr
+            else
+                $expr
+            end
+        end)
     end
 
     include("bodies.jl")
