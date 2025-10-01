@@ -8,3 +8,9 @@ struct ConstantForce
     multithreaded::Bool
 end
 ConstantForce(force::Vector{Float64}, particles::Vector{Particle}) = ConstantForce(force, particles, false)
+
+function compute_external_force!(cf::ConstantForce)
+    @use_threads cf.multithreaded for particle in cf.particles
+        particle.force .+= cd.force
+    end
+end
