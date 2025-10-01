@@ -7,7 +7,7 @@ struct BondList <: NeighborList
     bonds::Vector{Tuple{Particle, Vector{Particle}}}
 end
 
-function bind_closest(particles::Vector{Particle}, r_cut::Float64, interaction_matrix::Dict{Tuple{String, String}, Bool})
+function bind_closest(particles::Vector{Particle}, r_cut::Float64, interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool})
     bonds = Vector{Tuple{Particle, Vector{Particle}}}()
     N_particles = length(particles)
     for i = 1 : N_particles

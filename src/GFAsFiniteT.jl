@@ -10,6 +10,7 @@ module GFAsFiniteT
     export ExternalForce, ConstantForce, compute_external_force!
     export Integrator, Brownian, update_bodies!
     export System
+    export use_threads
 
     """
     Flush output so that jobs can be monitored on a cluster.

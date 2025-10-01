@@ -12,7 +12,7 @@ struct Brownian
 end
 
 function update_bodies!(integrator::Brownian)
-    @use_threads for body in integrator.bodies
+    @use_threads integrator.multithreaded for body in integrator.bodies
         update_body!(body, integrator.dt, integrator.kT, box)
     end
 end
