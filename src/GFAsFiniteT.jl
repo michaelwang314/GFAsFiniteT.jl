@@ -6,6 +6,7 @@ module GFAsFiniteT
     export Body, Particle, RigidBody, rotate!, translate!, set_body_ids!, rigid_bodies_to_particle_list, get_particles_with_id
     export NeighborList, BondList, LinkedCellList, bind_closest, update_cell_list!
     export Interaction, LennardJones, Morse, HarmonicBond, compute_force!, wrap_displacement, create_interaction_matrix
+    export ExternalForce, ConstantForce
     export Integrator, Brownian
     export System
 
@@ -29,8 +30,9 @@ module GFAsFiniteT
     end
 
     include("bodies.jl")
-    include("neighbor_lists.jl")
+    include("neighborlists.jl")
     include("interactions.jl")
+    include("externalforces.jl")
     include("integrators.jl")
     include("system.jl")
 end

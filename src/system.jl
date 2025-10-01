@@ -3,5 +3,6 @@ struct System
 
     bodies::Vector{<:Body}
     interactions::Vector{<:Interaction}
+    external_forces::Vector{<:ExternalForce}
     integrator::Integrator
 end
