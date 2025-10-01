@@ -3,9 +3,9 @@ module GFAsFiniteT
     using Serialization
     using LinearAlgebra
 
-    export Body, Particle, RigidBody, rotate!, translate!
-    export NeighborList, BondList, LinkedCellList, create_interaction_matrix, bind_closest, rigid_bodies_to_particle_list, get_particles_with_id
-    export Interaction, LennardJones, Morse, HarmonicBond
+    export Body, Particle, RigidBody, rotate!, translate!, set_rigid_body_id!, rigid_bodies_to_particle_list, get_particles_with_id
+    export NeighborList, BondList, LinkedCellList, bind_closest, update_cell_list!
+    export Interaction, LennardJones, Morse, HarmonicBond, compute_force!, wrap_displacement, create_interaction_matrix
     export Integrator, Brownian
     export System
 

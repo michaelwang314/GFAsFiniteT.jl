@@ -1,5 +1,9 @@
 abstract type Body end
 
+###########################################################################################################################################
+# 
+###########################################################################################################################################
+
 mutable struct Particle <: Body
     position::MVector{3, Float64}
     force::MVector{3, Float64}
@@ -26,6 +30,10 @@ mutable struct RigidBody <: Body
 
     id::String
 end
+
+###########################################################################################################################################
+# 
+###########################################################################################################################################
 
 function RigidBody(particles::Vector{Particle}, axes::Vector{Vector{Float64}}, γ_rot::Vector{Float64}, γ_trans::Float64, id::String)
     position = MVector{3}(0.0, 0.0, 0.0)
@@ -132,3 +140,32 @@ function translate!(bodies::Vector{RigidBody}, Δx::Float64, Δy::Float64, Δz::
     end
 end
 translate!(bodies::Vector{RigidBody}, Δr::Vector{Float64}) = translate!(bodies, Δr[1], Δr[2], Δr[3])
+
+###########################################################################################################################################
+# Additional functions
+###########################################################################################################################################
+
+function set_rigid_body_id!(body::RigidBody, id::String)
+    body.id = id
+    for particle in body.particles
+        particle.body_id = id
+    end
+end
+
+function rigid_bodies_to_particle_list(bodies::Vector{RigidBody})
+    particles = Vector{Particle}()
+    for body in bodies
+        append!(particles, body.particles)
+    end
+    return particles
+end
+
+function get_particles_with_id(particles::Vector{Particle}, ids::Vector{String})
+    subset = Vector{Particle}()
+    for particle in particles
+        if particle.id in ids
+            push!(subset, particle)
+        end
+    end
+    return subset
+end
