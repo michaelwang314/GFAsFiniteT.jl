@@ -70,12 +70,13 @@ function save_system!(system::System, filename::String)
     end
 end
 
-function export_for_mathematica!(trajectories::Trajectories, folder::String)
-    if !isdir(folder)
-        mkpath(folder)
+function export_for_mathematica!(trajectories::Trajectories, filename::String)
+    if !isdir(dirname(filename))
+        mkpath(dirname(filename))
     end
 
-    open(folder * "test.txt", "w") do io
-        write(io, "TEST")
+    open(filename, "w") do io
+        write(io, "frame, x, y, z\n")
+        write(io, "1, 1.0, 1.0, 1.0")
     end
 end
