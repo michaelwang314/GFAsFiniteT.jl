@@ -34,15 +34,15 @@ end
 function compute_forces!(lj::LennardJones)
     @use_threads lj.multithreaded for particle in lj.particles
         x, y, z = particle.position
-        i = floor(Int64, mod(x, lj.box[1]) / lj.neighbor_list.cell_spacings[1])
-        j = floor(Int64, mod(y, lj.box[2]) / lj.neighbor_list.cell_spacings[2])
-        k = floor(Int64, mod(z, lj.box[3]) / lj.neighbor_list.cell_spacings[3])
-        for Δi = -1 : 1, Δj = -1 : 1
+        i = floor(Int64, mod(x, lj.box[1]) / lj.neighbor_list.cell_sizes[1])
+        j = floor(Int64, mod(y, lj.box[2]) / lj.neighbor_list.cell_sizes[2])
+        k = floor(Int64, mod(z, lj.box[3]) / lj.neighbor_list.cell_sizes[3])
+        for Δi = -1 : 1, Δj = -1 : 1, Δk = -1 : 1
             iΔi = mod(i + Δi, lj.neighbor_list.cell_counts[1]) + 1
             jΔj = mod(j + Δj, lj.neighbor_list.cell_counts[2]) + 1
             kΔk = mod(k + Δk, lj.neighbor_list.cell_counts[3]) + 1
             index = lj.neighbor_list.start_index[iΔi, jΔj, kΔk]
-            while id > 0
+            while index > 0
                 neighbor = lj.neighbor_list.particles[index]
                 if isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id
                     Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], lj.box)
@@ -56,8 +56,8 @@ function compute_forces!(lj::LennardJones)
                         particle.force[2] += coef * Δy
                         particle.force[3] += coef * Δz
                     end
-                    index = lj.neighbor_list.next_index[index]
                 end
+                index = lj.neighbor_list.next_index[index]
             end
         end
     end
@@ -100,15 +100,15 @@ end
 function compute_forces!(m::Morse)
     @use_threads m.multithreaded for particle in m.particles
         x, y, z = particle.position
-        i = floor(Int64, mod(x, m.box[1]) / m.neighbor_list.cell_spacings[1])
-        j = floor(Int64, mod(y, m.box[2]) / m.neighbor_list.cell_spacings[2])
-        k = floor(Int64, mod(z, m.box[3]) / m.neighbor_list.cell_spacings[3])
-        for Δi = -1 : 1, Δj = -1 : 1
+        i = floor(Int64, mod(x, m.box[1]) / m.neighbor_list.cell_sizes[1])
+        j = floor(Int64, mod(y, m.box[2]) / m.neighbor_list.cell_sizes[2])
+        k = floor(Int64, mod(z, m.box[3]) / m.neighbor_list.cell_sizes[3])
+        for Δi = -1 : 1, Δj = -1 : 1, Δk = -1 : 1
             iΔi = mod(i + Δi, m.neighbor_list.cell_counts[1]) + 1
             jΔj = mod(j + Δj, m.neighbor_list.cell_counts[2]) + 1
             kΔk = mod(k + Δk, m.neighbor_list.cell_counts[3]) + 1
             index = m.neighbor_list.start_index[iΔi, jΔj, kΔk]
-            while id > 0
+            while index > 0
                 neighbor = m.neighbor_list.particles[index]
                 if isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id
                     Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], m.box)
@@ -123,8 +123,8 @@ function compute_forces!(m::Morse)
                         particle.force[2] += coef * Δy
                         particle.force[3] += coef * Δz
                     end
-                    index = m.neighbor_list.next_index[index]
                 end
+                index = m.neighbor_list.next_index[index]
             end
         end
     end
@@ -136,7 +136,7 @@ end
 
 mutable struct HarmonicBond <: Interaction
     k::Float64
-    r0::SVector{3, Float64}
+    r0::Float64
 
     bond_list::BondList
     box::SVector{3, Float64}
@@ -145,7 +145,7 @@ mutable struct HarmonicBond <: Interaction
 end
 
 function compute_forces!(hb::HarmonicBond)
-    @use_threads hb.multithreaded for (particle, neighbors) in hb.bond_list
+    @use_threads hb.multithreaded for (particle, neighbors) in hb.bond_list.bonds
         for neighbor in neighbors
             Δx, Δy, Δz = wrap_displacement(particle.position[1] - neighbor.position[1], particle.position[2] - neighbor.position[2], particle.position[3] - neighbor.position[3], hb.box)
             

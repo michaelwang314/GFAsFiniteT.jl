@@ -1,11 +1,11 @@
 struct System
     bodies::Vector{<:Body}
     interactions::Vector{<:Interaction}
+    neighbor_lists::Vector{<:NeighborList}
     external_forces::Vector{<:ExternalForce}
     integrator::Integrator
-
-    box::SVector{3, Float64}
 end
+System(bodies::Vector{<:Body}, interactions::Vector{<:Interaction}, neighbor_lists::Vector{<:NeighborList}, integrator::Integrator) = System(bodies, interactions, neighbor_lists, ExternalForce[], integrator)
 
 mutable struct Trajectories
     history::Vector{Vector{<:Body}}
@@ -27,18 +27,21 @@ end
 
 function run_simulation!(system::System, trajectories::Union{Trajectories, Nothing}, num_steps::Int64; message_interval::Float64 = 10.0)
     prev_step = 0
-    time_elasped = 0.0
+    time_elapsed = 0.0
     interval_start = time()
     for step = 1 : num_steps
         for interaction in system.interactions
-            compute_forces!(interactions)
+            compute_forces!(interaction)
         end
         for external_force in system.external_forces
             compute_forces!(external_force)
         end
-        update_bodies!(system.bodies)
+        update_bodies!(system.integrator)
+        for neighbor_list in system.neighbor_lists
+            update_cell_list!(neighbor_list)
+        end
 
-        if !isnothing(trajectories) && (step - trajectories.start) % trajectories.period
+        if !isnothing(trajectories) && (step - trajectories.start) % trajectories.period == 0
             push!(trajectories.history, deepcopy(system.bodies))
         end
 
@@ -56,3 +59,7 @@ function run_simulation!(system::System, trajectories::Union{Trajectories, Nothi
     end
 end
 run_simulation!(system::System, num_steps::Int64; message_interval::Float64 = 10.0) = run_simulation!(system, nothing, num_steps; message_interval = message_interval)
+
+function export_for_mathematica!(trajectories::Trajectories, folder::String)
+    
+end

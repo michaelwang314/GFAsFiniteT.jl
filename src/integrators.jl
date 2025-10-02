@@ -1,6 +1,6 @@
 abstract type Integrator end
 
-struct Brownian
+struct Brownian <: Integrator
     bodies::Vector{<:Body}
 
     dt::Float64
@@ -13,7 +13,7 @@ end
 
 function update_bodies!(integrator::Brownian)
     @use_threads integrator.multithreaded for body in integrator.bodies
-        update_body!(body, integrator.dt, integrator.kT, box)
+        update_body!(body, integrator.dt, integrator.kT, integrator.box)
     end
 end
 

@@ -158,7 +158,7 @@ function rigid_bodies_to_particle_list(bodies::Vector{RigidBody})
     return particles
 end
 
-function get_particles_with_id(particles::Vector{Particle}, ids::Vector{String})
+function get_particles_with_ids(particles::Vector{Particle}, ids::Vector{String})
     subset = Vector{Particle}()
     for particle in particles
         if particle.id in ids

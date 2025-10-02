@@ -4,12 +4,12 @@ module GFAsFiniteT
     using LinearAlgebra
     using DataStructures
 
-    export Body, Particle, RigidBody, rotate!, translate!, set_body_ids!, rigid_bodies_to_particle_list, get_particles_with_id
+    export Body, Particle, RigidBody, rotate!, translate!, set_body_ids!, rigid_bodies_to_particle_list, get_particles_with_ids
     export NeighborList, BondList, LinkedCellList, bind_closest, update_cell_list!
     export Interaction, LennardJones, Morse, HarmonicBond, compute_forces!, wrap_displacement, create_interaction_matrix
     export ExternalForce, ConstantForce
     export Integrator, Brownian, update_bodies!
-    export System
+    export System, Trajectories, run_simulation!, export_for_mathematica!
     export use_threads
 
     """

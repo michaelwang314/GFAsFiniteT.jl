@@ -38,22 +38,22 @@ struct LinkedCellList <: NeighborList
     next_index::Vector{Int64}
 
     cell_counts::SVector{3, Int64}
-    cell_spacings::SVector{3, Float64}
+    cell_sizes::Vector{Float64}
     box::SVector{3, Float64}
 
     update_interval::Int64
     update_counter::Int64
 end
 
-function LinkedCellList(particles::Vector{Particle}, approx_cell_spacings::Vector{Float64}, box::Vector{Float64}, update_interval::Int64)
-    cell_counts = floor.(Int64, box ./ approx_cell_spacings)
-    cell_spacings = box ./ cell_counts
+function LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, box::Vector{Float64}, update_interval::Int64)
+    cell_counts = floor.(Int64, box ./ approx_cell_size)
+    cell_sizes = box ./ cell_counts
 
     start_index = -ones(Int64, cell_counts[1], cell_counts[2], cell_counts[3])
     next_index = -ones(Int64, length(particles))
     
     for (n, particle) in enumerate(particles)
-        i, j, k = floor.(Int64, mod.(particle.position, box) ./ cell_spacings)
+        i, j, k = floor.(Int64, mod.(particle.position, box) ./ cell_sizes)
 
         if start_index[i, j, k] > 0
             next_index[n] = start_index[i, j, k]
@@ -61,18 +61,18 @@ function LinkedCellList(particles::Vector{Particle}, approx_cell_spacings::Vecto
         start_index[i, j, k] = n
     end
 
-    return LinkedCellList(particles, start_index, next_index, cell_counts, cell_spacings, box, update_interval, 0)
+    return LinkedCellList(particles, start_index, next_index, cell_counts, cell_sizes, box, update_interval, 0)
 end
-LinkedCellList(particles::Vector{Particle}, approx_cell_spacings::Vector{Float64}, box::Vector{Float64}) = LinkedCellList(particles, approx_cell_spacings, box, 1)
+LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, box::Vector{Float64}) = LinkedCellList(particles, approx_cell_size, box, 1)
 
 function update_cell_list!(cell_list::LinkedCellList)
     fill!(cell_list.start_index, -1)
     fill!(cell_list.next_index, -1)
 
     for (n, particle) in enumerate(cell_list.particles)
-        i = floor(Int64, mod(particle.position[1], cell_list.box[1]) / cell_list.cell_spacings[1]) + 1
-        j = floor(Int64, mod(particle.position[2], cell_list.box[2]) / cell_list.cell_spacings[2]) + 1
-        k = floor(Int64, mod(particle.position[3], cell_list.box[3]) / cell_list.cell_spacings[3]) + 1
+        i = floor(Int64, mod(particle.position[1], cell_list.box[1]) / cell_list.cell_sizes[1]) + 1
+        j = floor(Int64, mod(particle.position[2], cell_list.box[2]) / cell_list.cell_sizes[2]) + 1
+        k = floor(Int64, mod(particle.position[3], cell_list.box[3]) / cell_list.cell_sizes[3]) + 1
 
         if cell_list.start_index[i, j, k] > 0
             cell_list.next_index[n] = cell_list.start_index[i, j, k]
