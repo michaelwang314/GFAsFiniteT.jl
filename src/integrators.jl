@@ -33,11 +33,33 @@ function update_body!(body::RigidBody, dt::Float64, kT::Float64, box::SVector{3,
 
         fill!(particle.force, 0.0)
     end
+    τ1_scaled = (τx_total * body.axes[1][1] + τy_total * body.axes[1][2] + τz_total * body.axes[1][3]) / body.moments[1]
+    τ2_scaled = (τx_total * body.axes[2][1] + τy_total * body.axes[2][2] + τz_total * body.axes[2][3]) / body.moments[2]
+    τ3_scaled = (τx_total * body.axes[3][1] + τy_total * body.axes[3][2] + τz_total * body.axes[3][3]) / body.moments[3]
+    ωx = τ1_scaled * body.axes[1][1] + τ2_scaled * body.axes[2][1] + τ3_scaled * body.axes[3][1]
+    ωy = τ1_scaled * body.axes[1][2] + τ2_scaled * body.axes[2][2] + τ3_scaled * body.axes[3][2]
+    ωz = τ1_scaled * body.axes[1][3] + τ2_scaled * body.axes[2][3] + τ3_scaled * body.axes[3][3]
+    ω = sqrt(ωx^2 + ωy^2 + ωz^2)
 
-    translate!(body, dt * fx_total, dt * fy_total, dt * fz_total)
-    τ1 = τx_total * body.axes[1][1] + τy_total * body.axes[1][2] + τz_total * body.axes[1][3]
-    τ2 = τx_total * body.axes[2][1] + τy_total * body.axes[2][2] + τz_total * body.axes[2][3]
-    τ3 = τx_total * body.axes[3][1] + τy_total * body.axes[3][2] + τz_total * body.axes[3][3]
+    dt_scaled = dt / body.γ_trans
+    translate!(body, dt_scaled * fx_total, dt_scaled * fy_total, dt_scaled * fz_total)
+    if ω > 0.0
+        rotate!(body, ωx / ω, ωy / ω, ωz / ω, dt * ω)
+    end
+
+    Δx, Δy, Δz = 0.0, 0.0, 0.0
+    if !(0.0 <= body.centroid[1] < box[1])
+        Δx = mod(body.centroid[1], box[1]) - body.centroid[1]
+    end
+    if !(0.0 <= body.centroid[2] < box[2])
+        Δy = mod(body.centroid[2], box[2]) - body.centroid[2]
+    end
+    if !(0.0 <= body.centroid[3] < box[3])
+        Δz = mod(body.centroid[3], box[3]) - body.centroid[3]
+    end
+    if Δx != 0.0 || Δy != 0.0 || Δz != 0.0
+        translate!(body, Δx, Δy, Δz)
+    end
 end
 
 function update_body!(body::Particle, dt::Float64, kT::Float64, box::SVector{3, Float64})

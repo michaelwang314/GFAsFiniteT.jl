@@ -31,7 +31,7 @@ function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}
     return LennardJones(ϵ, σ, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
 
-function compute_force!(lj::LennardJones)
+function compute_forces!(lj::LennardJones)
     @use_threads lj.multithreaded for particle in lj.particles
         x, y, z = particle.position
         i = floor(Int64, mod(x, lj.box[1]) / lj.neighbor_list.cell_spacings[1])
@@ -97,7 +97,7 @@ function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, par
     return Morse(D0, α, r0, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
 
-function compute_force!(m::Morse)
+function compute_forces!(m::Morse)
     @use_threads m.multithreaded for particle in m.particles
         x, y, z = particle.position
         i = floor(Int64, mod(x, m.box[1]) / m.neighbor_list.cell_spacings[1])
@@ -144,7 +144,7 @@ mutable struct HarmonicBond <: Interaction
     multithreaded::Bool
 end
 
-function compute_force!(hb::HarmonicBond)
+function compute_forces!(hb::HarmonicBond)
     @use_threads hb.multithreaded for (particle, neighbors) in hb.bond_list
         for neighbor in neighbors
             Δx, Δy, Δz = wrap_displacement(particle.position[1] - neighbor.position[1], particle.position[2] - neighbor.position[2], particle.position[3] - neighbor.position[3], hb.box)
