@@ -75,5 +75,7 @@ function export_for_mathematica!(trajectories::Trajectories, folder::String)
         mkpath(folder)
     end
 
-    print(length(trajectories.history))
+    open(folder * "test.txt", "w") do io
+        write(io, "TEST")
+    end
 end
