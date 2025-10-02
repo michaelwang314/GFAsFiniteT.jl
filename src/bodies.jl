@@ -150,7 +150,7 @@ function set_body_ids!(body::RigidBody, id::String)
     end
 end
 
-function rigid_bodies_to_particle_list(bodies::Vector{RigidBody})
+function get_particle_list(bodies::Vector{Body})
     particles = Vector{Particle}()
     for body in bodies
         append!(particles, body.particles)
