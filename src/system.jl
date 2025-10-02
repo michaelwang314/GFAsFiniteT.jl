@@ -60,6 +60,20 @@ function run_simulation!(system::System, trajectories::Union{Trajectories, Nothi
 end
 run_simulation!(system::System, num_steps::Int64; message_interval::Float64 = 10.0) = run_simulation!(system, nothing, num_steps; message_interval = message_interval)
 
+function save_system!(system::System, filename::String)
+    if !isdir(dirname(file))
+        mkpath(dirname(file))
+    end
+
+    open(filename, "w") do io
+        serialize(io, system)
+    end
+end
+
 function export_for_mathematica!(trajectories::Trajectories, folder::String)
-    
+    if !isdir(folder)
+        mkpath(folder)
+    end
+
+    print(length(trajectories.history))
 end
