@@ -63,10 +63,11 @@ function update_body!(body::RigidBody, dt::Float64, kT::Float64, box::SVector{3,
 end
 
 function update_body!(body::Particle, dt::Float64, kT::Float64, box::SVector{3, Float64})
-    amp = sqrt(2 * kT / (body.γ * dt))
-    body.position[1] += body.force[1] / body.γ + amp * randn()
-    body.position[2] += body.force[2] / body.γ + amp * randn()
-    body.position[3] += body.force[3] / body.γ + amp * randn()
+    amp = sqrt(2 * kT * dt / body.γ)
+    dt_scaled = dt / body.γ
+    body.position[1] += dt_scaled * body.force[1] + amp * randn()
+    body.position[2] += dt_scaled * body.force[2] + amp * randn()
+    body.position[3] += dt_scaled * body.force[3] + amp * randn()
 
     if !(0.0 <= body.position[1] < box[1])
         body.position[1] = mod(body.position[1], box[1])
