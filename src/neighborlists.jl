@@ -32,7 +32,7 @@ end
 # 
 ###########################################################################################################################################
 
-struct LinkedCellList <: NeighborList
+mutable struct LinkedCellList <: NeighborList
     particles::Vector{Particle}
     start_index::Array{Int64, 3}
     next_index::Vector{Int64}
