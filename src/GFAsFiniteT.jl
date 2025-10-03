@@ -7,7 +7,7 @@ module GFAsFiniteT
     export Body, Particle, RigidBody, rotate!, translate!, set_body_ids!, get_particle_list, get_particles_with_ids
     export NeighborList, BondList, LinkedCellList, bind_closest, update_cell_list!
     export Interaction, LennardJones, Morse, HarmonicBond, compute_forces!, wrap_displacement, create_interaction_matrix
-    export ExternalForce, ConstantForce
+    export ExternalForce, ConstantForce, HarmonicTrap
     export Integrator, Brownian, update_bodies!
     export System, Trajectories, run_simulation!, save_system!, load_system, export_trajectories!
     export use_threads

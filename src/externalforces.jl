@@ -1,6 +1,6 @@
 abstract type ExternalForce end
 
-struct ConstantForce
+struct ConstantForce <: ExternalForce
     force::SVector{3, Float64}
 
     particles::Vector{Particle}
@@ -12,5 +12,22 @@ ConstantForce(force::Vector{Float64}, particles::Vector{Particle}) = ConstantFor
 function compute_forces!(cf::ConstantForce)
     @use_threads cf.multithreaded for particle in cf.particles
         particle.force .+= cd.force
+    end
+end
+
+struct HarmonicTrap <: ExternalForce
+    k::Float64
+    r0::SVector{3, Int64}
+
+    particles::Vector{Particle}
+    
+    multithreaded::Bool
+end
+
+function compute_forces!(ht::HarmonicTrap)
+    @use_threads ht.multithreaded for particle in ht.particles
+        particle.force[1] += -ht.k * (particle.position[1] - ht.r0[1])
+        particle.force[2] += -ht.k * (particle.position[2] - ht.r0[2])
+        particle.force[3] += -ht.k * (particle.position[3] - ht.r0[3])
     end
 end
