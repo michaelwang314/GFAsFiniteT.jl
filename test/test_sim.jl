@@ -2,12 +2,16 @@ using GFAsFiniteT
 
 function run!()
     box = [5.0, 5.0, 5.0]
+    num_steps = 10000000
+    save_interval = trunc(Int64, num_steps / 10000)
+    dt = 0.001
+    kT = 1.0
 
     a = 1.0
-    t, w = a / sqrt(2), 0.1
+    t, w = a / sqrt(2), 0.0
 
     north = [([0.0, a / 2, t / 2], "N1"), ([0.0, a / 2, -t / 2], "N2"), ([-w / 2, a / 2, 0.0], "N3"), ([w / 2, a / 2, 0.0], "N4")]
-    south = [([0.0, -a / 2, t / 2], "N1"), ([0.0, -a / 2, -t / 2], "N2"), ([-w / 2, -a / 2, 0.0], "N3"), ([w / 2, -a / 2, 0.0], "N4")]
+    south = [([0.0, -a / 2, t / 2], "S1"), ([0.0, -a / 2, -t / 2], "S2"), ([-w / 2, -a / 2, 0.0], "S3"), ([w / 2, -a / 2, 0.0], "S4")]
     east = [([a / 2, 0.0, t / 2], "E1"), ([a / 2, 0.0, -t / 2], "E2"), ([a / 2, w / 2, 0.0], "E3"), ([a / 2, -w / 2, 0.0], "E4")]
     west = [([-a / 2, 0.0, t / 2], "W1"), ([-a / 2, 0.0, -t / 2], "W2"), ([-a / 2, w / 2, 0.0], "W3"), ([-a / 2, -w / 2, 0.0], "W4")]
     linker_sites = [([a / 4, a / 4, 0.0], "linker_site"), ([-a / 4, a / 4, 0.0], "linker_site"), ([-a / 4, -a / 4, 0.0], "linker_site"), ([a / 4, -a / 4, 0.0], "linker_site")]
@@ -27,9 +31,6 @@ function run!()
         push!(bodies, new_rigid_body)
     end
     
-    push!(bodies, Particle([1.0, 1.0, 1.0], "linker"))
-    push!(bodies, Particle([4.0, 1.0, 1.0], "linker"))
-    
     all_particles = get_particle_list(bodies, [RigidBody])
 
     lj_particles = get_particles_with_ids(all_particles, ["central"])
@@ -42,14 +43,14 @@ function run!()
     attractor_imatrix = create_interaction_matrix([[("N$i", "S$i") for i = 1 : 4]; [("E$i", "W$i") for i = 1 : 4]])
     attractors = get_particles_with_ids(all_particles, ["$(d)$(i)" for d in ["N", "S", "E", "W"], i = 1 : 4][:])
     hb_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
-    hb = HarmonicBond(100.0, 0.0, hb_bond_list, box, false)
+    hb = HarmonicBond(25.0, 0.0, hb_bond_list, box, false)
 
-    brownian = Brownian(bodies, 0.0001, 1.0, box, false)
+    brownian = Brownian(bodies, dt, kT, box, false)
 
     system = System(bodies, [lj, hb], [lj_cell_list], brownian)
-    trajectories = Trajectories(1, 10000)
-    run_simulation!(system, trajectories, 1000000)
-    save_system!(system, "TEST_OUTPUT/system.out")
+    trajectories = Trajectories(1, save_interval)
+    run_simulation!(system, trajectories, num_steps)
+    #save_system!(system, "TEST_OUTPUT/system.out")
     export_trajectories!(trajectories, "TEST_OUTPUT/trajectories.txt", [RigidBody])
 end
 run!()
