@@ -1,0 +1,54 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      1320,         46]
+NotebookOptionsPosition[       966,         32]
+NotebookOutlinePosition[      1365,         48]
+CellTagsIndexPosition[      1322,         45]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"trajectories", "=", 
+   RowBox[{"Import", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], "<>", 
+      "\"\<TEST_OUTPUT/trajectories.txt\>\""}], ",", "\"\<csv\>\""}], "]"}]}],
+   ";"}]], "Input",
+ CellChangeTimes->{{3.9684452582808027`*^9, 3.968445305655134*^9}},
+ CellLabel->"In[2]:=",ExpressionUUID->"aee05131-2b0e-4569-854e-06c0cf01bfe6"]
+},
+WindowSize->{606, 683.25},
+WindowMargins->{{-2.25, Automatic}, {Automatic, -22.5}},
+FrontEndVersion->"14.1 for Linux x86 (64-bit) (July 16, 2024)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"3dc44a2b-ffb1-4551-88dd-e00509a45c36"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 408, 10, 69, "Input",ExpressionUUID->"aee05131-2b0e-4569-854e-06c0cf01bfe6"]
+}
+]
+*)
+

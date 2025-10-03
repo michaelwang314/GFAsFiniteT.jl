@@ -9,7 +9,7 @@ module GFAsFiniteT
     export Interaction, LennardJones, Morse, HarmonicBond, compute_forces!, wrap_displacement, create_interaction_matrix
     export ExternalForce, ConstantForce
     export Integrator, Brownian, update_bodies!
-    export System, Trajectories, run_simulation!, save_system!, export_for_mathematica!
+    export System, Trajectories, run_simulation!, save_system!, load_system, export_trajectories!
     export use_threads
 
     """

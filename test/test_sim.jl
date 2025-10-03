@@ -18,7 +18,7 @@ function run!()
     end
     temp_rigid_body = RigidBody(body_particles, "")
 
-    bodies = Vector{RigidBody}()
+    bodies = Vector{Body}()
     i = 0
     for Δr in [[0.5, 0.5, 0.0], [-0.5, 0.5, 0.0], [-0.5, -0.5, 0.0], [0.5, -0.5, 0.0]]
         new_rigid_body = deepcopy(temp_rigid_body)
@@ -26,24 +26,30 @@ function run!()
         set_body_ids!(new_rigid_body, "body $(i += 1)")
         push!(bodies, new_rigid_body)
     end
-    all_particles = rigid_bodies_to_particle_list(bodies)
+    
+    push!(bodies, Particle([1.0, 1.0, 1.0], "linker"))
+    push!(bodies, Particle([4.0, 1.0, 1.0], "linker"))
+    
+    all_particles = get_particle_list(bodies, [RigidBody])
 
-    central_particles = get_particles_with_ids(all_particles, ["central"])
+    lj_particles = get_particles_with_ids(all_particles, ["central"])
     lj_r_cut = 2^(1 / 6) * a / sqrt(2)
-    lj_imatrix = create_interaction_matrix([("central", "central")])
-    lj_cell_list = LinkedCellList(central_particles, lj_r_cut, box)
-    lj = LennardJones([("central", "central", Dict("ϵ" => 1.0, "σ" => a / sqrt(2), "r_cut" => lj_r_cut))], central_particles, lj_cell_list, lj_imatrix, box, false)
+    lj_imatrix = create_interaction_matrix([("central", "central"), ("central", "linker")])
+    lj_cell_list = LinkedCellList(lj_particles, lj_r_cut, box)
+    lj = LennardJones([("central", "central", Dict("ϵ" => 1.0, "σ" => a / sqrt(2), "r_cut" => lj_r_cut)), 
+                       ("central", "linker", Dict("ϵ" => 1.0, "σ" => a / sqrt(2), "r_cut" => lj_r_cut))], lj_particles, lj_cell_list, lj_imatrix, box, false)
 
     attractor_imatrix = create_interaction_matrix([[("N$i", "S$i") for i = 1 : 4]; [("E$i", "W$i") for i = 1 : 4]])
     attractors = get_particles_with_ids(all_particles, ["$(d)$(i)" for d in ["N", "S", "E", "W"], i = 1 : 4][:])
     hb_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
-    hb = HarmonicBond(1.0, 0.0, hb_bond_list, box, false)
+    hb = HarmonicBond(100.0, 0.0, hb_bond_list, box, false)
 
-    brownian = Brownian(bodies, 0.001, 1.0, box, false)
+    brownian = Brownian(bodies, 0.0001, 1.0, box, false)
 
     system = System(bodies, [lj, hb], [lj_cell_list], brownian)
     trajectories = Trajectories(1, 10000)
     run_simulation!(system, trajectories, 1000000)
-    export_for_mathematica!(trajectories, "")
+    save_system!(system, "TEST_OUTPUT/system.out")
+    export_trajectories!(trajectories, "TEST_OUTPUT/trajectories.txt", [RigidBody])
 end
 run!()

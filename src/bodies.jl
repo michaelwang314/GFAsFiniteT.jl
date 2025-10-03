@@ -150,10 +150,15 @@ function set_body_ids!(body::RigidBody, id::String)
     end
 end
 
-function get_particle_list(bodies::Vector{Body})
+function get_particle_list(bodies::Vector{<:Body}, multi_particle_types::Vector{DataType})
     particles = Vector{Particle}()
     for body in bodies
-        append!(particles, body.particles)
+        if typeof(body) in multi_particle_types
+            append!(particles, body.particles)
+        else
+            push!(particles, body)
+        end
+
     end
     return particles
 end

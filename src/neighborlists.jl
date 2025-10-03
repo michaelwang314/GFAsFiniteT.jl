@@ -15,7 +15,7 @@ function bind_closest(particles::Vector{Particle}, r_cut::Float64, interaction_m
         temp_neighbors = Vector{Particle}()
         for j = 1 : N_particles
             particle_j = particles[j]
-            if i!=j && get(interaction_matrix, (particle_i.id, particle_j.id), false) && sum((particle_i.position .- particle_j.position).^2) <= r_cut^2
+            if i != j && interaction_matrix[particle_i.id, particle_j.id] && sum((particle_i.position .- particle_j.position).^2) <= r_cut^2
                 push!(temp_neighbors, particle_j)
             end
         end
