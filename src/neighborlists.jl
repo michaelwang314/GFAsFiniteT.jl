@@ -61,22 +61,27 @@ function LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, 
         start_index[i, j, k] = n
     end
 
-    return LinkedCellList(particles, start_index, next_index, cell_counts, cell_sizes, box, update_interval, 0)
+    return LinkedCellList(particles, start_index, next_index, cell_counts, cell_sizes, box, update_interval, 1)
 end
 LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, box::Vector{Float64}) = LinkedCellList(particles, approx_cell_size, box, 1)
 
 function update_cell_list!(cell_list::LinkedCellList)
-    fill!(cell_list.start_index, -1)
-    fill!(cell_list.next_index, -1)
+    if cell_list.update_counter == cell_list.update_interval
+        fill!(cell_list.start_index, -1)
+        fill!(cell_list.next_index, -1)
 
-    for (n, particle) in enumerate(cell_list.particles)
-        i = floor(Int64, mod(particle.position[1], cell_list.box[1]) / cell_list.cell_sizes[1]) + 1
-        j = floor(Int64, mod(particle.position[2], cell_list.box[2]) / cell_list.cell_sizes[2]) + 1
-        k = floor(Int64, mod(particle.position[3], cell_list.box[3]) / cell_list.cell_sizes[3]) + 1
+        for (n, particle) in enumerate(cell_list.particles)
+            i = floor(Int64, mod(particle.position[1], cell_list.box[1]) / cell_list.cell_sizes[1]) + 1
+            j = floor(Int64, mod(particle.position[2], cell_list.box[2]) / cell_list.cell_sizes[2]) + 1
+            k = floor(Int64, mod(particle.position[3], cell_list.box[3]) / cell_list.cell_sizes[3]) + 1
 
-        if cell_list.start_index[i, j, k] > 0
-            cell_list.next_index[n] = cell_list.start_index[i, j, k]
+            if cell_list.start_index[i, j, k] > 0
+                cell_list.next_index[n] = cell_list.start_index[i, j, k]
+            end
+            cell_list.start_index[i, j, k] = n
         end
-        cell_list.start_index[i, j, k] = n
+        cell_list.update_counter = 1
+    else
+        cell_list.update_counter += 1
     end
 end
