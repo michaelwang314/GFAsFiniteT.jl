@@ -14,6 +14,7 @@ mutable struct Trajectories
     period::Int64
 end
 Trajectories(start::Int64, period::Int64) = Trajectories(Vector{Vector{<:Body}}(), start, period)
+Trajectories(period::Int64) = Trajectories(1, period)
 
 function hr_min_sec(time::Float64)
     hours = trunc(Int64, time / 3600.0)
