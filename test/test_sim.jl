@@ -39,13 +39,15 @@ function run!()
 
     all_particles = get_particle_list(bodies, [RigidBody])
 
+    r_excluder = a / (2 * sqrt(2))
+    r_linker = 0.1
+    lj_r_cut = maximum(2^(1 / 6) * [2 * r_excluder, r_excluder + r_linker, 2 * r_linker])
     lj_particles = get_particles_with_ids(all_particles, ["central", "linker"])
-    lj_r_cut = 2^(1 / 6) * a / sqrt(2)
-    lj_imatrix = create_interaction_matrix([("central", "central"), ("central", "linker")])
+    lj_imatrix = create_interaction_matrix([("central", "central"), ("central", "linker"), ("linker", "linker")])
     lj_cell_list = LinkedCellList(lj_particles, lj_r_cut, box)
-    lj_params = [("central", "central", Dict("ϵ" => 1.0, "σ" => a / sqrt(2), "r_cut" => lj_r_cut)), 
-                 ("central", "linker", Dict("ϵ" => 1.0, "σ" => 0.5, "r_cut" => 2^(1 / 6) * 0.5)),
-                 ("linker", "linker", Dict("ϵ" => 1.0, "σ" => 0.5, "r_cut" => 2^(1 / 6) * 0.5))]
+    lj_params = [("central", "central", Dict("ϵ" => 1.0, "σ" => 2 * r_excluder, "r_cut" => 2^(1 / 6) * 2 * r_excluder)), 
+                 ("central", "linker", Dict("ϵ" => 1.0, "σ" => r_excluder + r_linker, "r_cut" => 2^(1 / 6) * (r_excluder + r_linker))),
+                 ("linker", "linker", Dict("ϵ" => 1.0, "σ" => 2 * r_linker, "r_cut" => 2^(1 / 6) * 2 * r_linker))]
     lj = LennardJones(lj_params, lj_particles, lj_cell_list, lj_imatrix, box, false)
 
     attractor_imatrix = create_interaction_matrix([[("N$i", "S$i") for i = 1 : 4]; [("E$i", "W$i") for i = 1 : 4]])
