@@ -65,7 +65,7 @@ function LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, 
 end
 LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, box::Vector{Float64}) = LinkedCellList(particles, approx_cell_size, box, 1)
 
-function update_cell_list!(cell_list::LinkedCellList)
+function update_neighbor_list!(cell_list::LinkedCellList)
     if cell_list.update_counter == cell_list.update_interval
         fill!(cell_list.start_index, -1)
         fill!(cell_list.next_index, -1)
