@@ -39,7 +39,7 @@ function run_simulation!(system::System, trajectories::Union{Trajectories, Nothi
         end
         update_bodies!(system.integrator)
         for neighbor_list in system.neighbor_lists
-            update_cell_list!(neighbor_list)
+            update_neighbor_list!(neighbor_list)
         end
 
         if !isnothing(trajectories) && (step - trajectories.start) % trajectories.period == 0

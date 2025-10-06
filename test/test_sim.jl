@@ -4,11 +4,14 @@ function run!()
     box = [5.0, 5.0, 5.0]
     num_steps = 10000000
     save_interval = trunc(Int64, num_steps / 10000)
-    dt = 0.001
+    dt = 0.0001
     kT = 1.0
 
     a = 1.0
     t, w = a / sqrt(2), 0.0
+    k_corners = 1000.0
+
+    num_linkers = 0
 
     north = [([0.0, a / 2, t / 2], "N1"), ([0.0, a / 2, -t / 2], "N2"), ([-w / 2, a / 2, 0.0], "N3"), ([w / 2, a / 2, 0.0], "N4")]
     south = [([0.0, -a / 2, t / 2], "S1"), ([0.0, -a / 2, -t / 2], "S2"), ([-w / 2, -a / 2, 0.0], "S3"), ([w / 2, -a / 2, 0.0], "S4")]
@@ -30,20 +33,26 @@ function run!()
         set_body_ids!(new_rigid_body, "body $(i += 1)")
         push!(bodies, new_rigid_body)
     end
+
+    # add linkers
     
     all_particles = get_particle_list(bodies, [RigidBody])
 
-    lj_particles = get_particles_with_ids(all_particles, ["central"])
+    lj_particles = get_particles_with_ids(all_particles, ["central", "linker"])
     lj_r_cut = 2^(1 / 6) * a / sqrt(2)
     lj_imatrix = create_interaction_matrix([("central", "central"), ("central", "linker")])
     lj_cell_list = LinkedCellList(lj_particles, lj_r_cut, box)
-    lj = LennardJones([("central", "central", Dict("ϵ" => 1.0, "σ" => a / sqrt(2), "r_cut" => lj_r_cut)), 
-                       ("central", "linker", Dict("ϵ" => 1.0, "σ" => a / sqrt(2), "r_cut" => lj_r_cut))], lj_particles, lj_cell_list, lj_imatrix, box, false)
+    lj_params = [("central", "central", Dict("ϵ" => 1.0, "σ" => a / sqrt(2), "r_cut" => lj_r_cut)), 
+                 ("central", "linker", Dict("ϵ" => 1.0, "σ" => 0.5, "r_cut" => 2^(1 / 6) * 0.5)),
+                 ("linker", "linker", Dict("ϵ" => 1.0, "σ" => 0.5, "r_cut" => 2^(1 / 6) * 0.5))]
+    lj = LennardJones(lj_params, lj_particles, lj_cell_list, lj_imatrix, box, false)
 
     attractor_imatrix = create_interaction_matrix([[("N$i", "S$i") for i = 1 : 4]; [("E$i", "W$i") for i = 1 : 4]])
     attractors = get_particles_with_ids(all_particles, ["$(d)$(i)" for d in ["N", "S", "E", "W"], i = 1 : 4][:])
     hb_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
-    hb = HarmonicBond(25.0, 0.0, hb_bond_list, box, false)
+    hb = HarmonicBond(k_corners, 0.0, hb_bond_list, box, false)
+
+    # test morse
 
     brownian = Brownian(bodies, dt, kT, box, false)
 
