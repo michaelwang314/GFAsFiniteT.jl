@@ -26,7 +26,7 @@ function hr_min_sec(time::Float64)
                   seconds < 10 ? ":0" : ":", seconds)
 end
 
-function run_simulation!(system::System, trajectories::Union{Trajectories, Nothing}, num_steps::Int64; message_interval::Float64 = 10.0)
+function run_simulation!(system::System, trajectories::Union{Trajectories, Nothing}, num_steps::Int64; message_interval::Union{Float64, Nothing} = 10.0)
     prev_step = 0
     time_elapsed = 0.0
     interval_start = time()
@@ -47,7 +47,7 @@ function run_simulation!(system::System, trajectories::Union{Trajectories, Nothi
         end
 
         interval_time = time() - interval_start
-        if interval_time > message_interval || step == num_steps
+        if !isnothing(message_interval) && (interval_time > message_interval || step == num_steps)
             time_elapsed += interval_time
             rate = (step - prev_step) / interval_time
             println(hr_min_sec(time_elapsed), " | ",
@@ -59,7 +59,11 @@ function run_simulation!(system::System, trajectories::Union{Trajectories, Nothi
         end
     end
 end
-run_simulation!(system::System, num_steps::Int64; message_interval::Float64 = 10.0) = run_simulation!(system, nothing, num_steps; message_interval = message_interval)
+run_simulation!(system::System, num_steps::Int64; message_interval::Union{Float64, Nothing} = 10.0) = run_simulation!(system, nothing, num_steps; message_interval = message_interval)
+
+###########################################################################################################################################
+# 
+###########################################################################################################################################
 
 function save_system!(system::System, filename::String)
     if !isdir(dirname(filename))
@@ -87,9 +91,7 @@ function export_trajectories!(trajectories::Trajectories, filename::String, mult
     open(filename, "w") do io
         write(io, "t, x, y, z, id, body id\n")
         for (t, bodies) in enumerate(trajectories.history)
-            all_particles = get_particle_list(bodies, multi_particle_types)
-
-            for particle in all_particles
+            for particle in get_particle_list(bodies, multi_particle_types)
                 write(io, "$(t), $(particle.position[1]), $(particle.position[2]), $(particle.position[3]), $(particle.id), $(particle.body_id)\n")
             end
         end
