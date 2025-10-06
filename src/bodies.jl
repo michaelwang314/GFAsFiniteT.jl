@@ -1,7 +1,7 @@
 abstract type Body end
 
 ###########################################################################################################################################
-# 
+# Particle
 ###########################################################################################################################################
 
 mutable struct Particle <: Body
@@ -21,9 +21,13 @@ Particle(position::Vector{Float64}, γ::Float64, id::String) = Particle(position
 Particle(position::Vector{Float64}, id::String) = Particle(position, [0.0, 0.0, 0.0], 1.0, id, nothing)
 
 ###########################################################################################################################################
-# 
+# Rigid body
 ###########################################################################################################################################
+"""
+`RigidBody` is a rigid collection of `Particles`
 
+Requires a list of particles.  Centroid and moment of friction/inertia computed from particle positions. 
+"""
 mutable struct RigidBody <: Body
     centroid::MVector{3, Float64}
     particles::Vector{Particle}
@@ -66,6 +70,11 @@ function RigidBody(particles::Vector{Particle}, id::String)
 end
 RigidBody(particles::Vector{Particle}) = RigidBody(particles, "")
 
+"""
+    rotate!(body, axis_x, axis_y, axis_z, θ)
+
+Rotate `body` about an axis `[axis_x, axis_y, axis_z]` around its centroid by an angle `θ`
+"""
 function rotate!(body::RigidBody, axis_x::Float64, axis_y::Float64, axis_z::Float64, θ::Float64)
     sin, cos = sincos(θ)
     Rxx, Rxy, Rxz = cos + axis_x^2 * (1 - cos), axis_x * axis_y * (1 - cos) - axis_z * sin, axis_x * axis_z * (1 - cos) + axis_y * sin
@@ -86,6 +95,11 @@ function rotate!(body::RigidBody, axis_x::Float64, axis_y::Float64, axis_z::Floa
 end
 rotate!(body::RigidBody, axis::Vector{Float64}, θ::Float64) = rotate!(body, axis[1], axis[2], axis[3], θ)
 
+"""
+    rotate!(body, origin_x, origin_y, origin_z, axis_x, axis_y, axis_z, θ)
+
+Rotate a `body` about an axis `[axis_x, axis_y, axis_z]` around an origin `[origin_x, origin_y, origin_z]` by an angle `θ` 
+"""
 function rotate!(body::RigidBody, origin_x::Float64, origin_y::Float64, origin_z::Float64, axis_x::Float64, axis_y::Float64, axis_z::Float64, θ::Float64)
     sin, cos = sincos(θ)
     Rxx, Rxy, Rxz = cos + axis_x^2 * (1 - cos), axis_x * axis_y * (1 - cos) - axis_z * sin, axis_x * axis_z * (1 - cos) + axis_y * sin
@@ -112,6 +126,11 @@ function rotate!(body::RigidBody, origin_x::Float64, origin_y::Float64, origin_z
 end
 rotate!(body::RigidBody, origin::Vector{Float64}, axis::Vector{Float64}, θ) = rotate!(body, origin[1], origin[2], origin[3], axis[1], axis[2], axis[3], θ)
 
+"""
+    rotate!(bodies, ...)
+
+Rotate multiple bodies collectively
+"""
 function rotate!(bodies::Vector{RigidBody}, origin_x::Float64, origin_y::Float64, origin_z::Float64, axis_x::Float64, axis_y::Float64, axis_z::Float64, θ::Float64)
     for body in bodies
         rotate!(body, origin_x, origin_y, origin_z, axis_x, axis_y, axis_z, θ)
@@ -119,6 +138,11 @@ function rotate!(bodies::Vector{RigidBody}, origin_x::Float64, origin_y::Float64
 end
 rotate!(bodies::Vector{RigidBody}, origin::Vector{Float64}, axis::Vector{Float64}, θ) = rotate!(bodies, origin[1], origin[2], origin[3], axis[1], axis[2], axis[3], θ)
 
+"""
+    translate!(body, Δx, Δy, Δz)
+
+Translate a `body` by `[Δx, Δy, Δz]`
+"""
 function translate!(body::RigidBody, Δx::Float64, Δy::Float64, Δz::Float64)
     body.centroid[1] += Δx
     body.centroid[2] += Δy
@@ -132,6 +156,11 @@ function translate!(body::RigidBody, Δx::Float64, Δy::Float64, Δz::Float64)
 end
 translate!(body::RigidBody, Δr::Vector{Float64}) = translate!(body, Δr[1], Δr[2], Δr[3])
 
+"""
+    translate!(bodies, ...)
+
+Translate multiple bodies collectively
+"""
 function translate!(bodies::Vector{RigidBody}, Δx::Float64, Δy::Float64, Δz::Float64)
     for body in bodies
         translate!(body, Δx, Δy, Δz)
@@ -142,7 +171,11 @@ translate!(bodies::Vector{RigidBody}, Δr::Vector{Float64}) = translate!(bodies,
 ###########################################################################################################################################
 # Additional functions
 ###########################################################################################################################################
+"""
+    set_body_ids!(body, id)
 
+Set `id` of `body` as well as `body_id` of constituent particles
+"""
 function set_body_ids!(body::RigidBody, id::String)
     body.id = id
     for particle in body.particles

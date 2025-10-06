@@ -23,7 +23,7 @@ function run!()
     for (r, id) in [north; south; east; west; linker_sites; excluders]
         push!(body_particles, Particle(r, id))
     end
-    temp_rigid_body = RigidBody(body_particles, "")
+    temp_rigid_body = RigidBody(body_particles)
 
     bodies = Vector{Body}()
     i = 0
@@ -35,7 +35,8 @@ function run!()
     end
 
     # add linkers
-    
+    push!(bodies, Particle([1.0, 1.0, 1.0], "linker"))
+
     all_particles = get_particle_list(bodies, [RigidBody])
 
     lj_particles = get_particles_with_ids(all_particles, ["central", "linker"])
