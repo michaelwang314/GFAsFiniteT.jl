@@ -55,7 +55,13 @@ function run!()
     hb_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
     hb = HarmonicBond(k_corners, 0.0, hb_bond_list, box, false)
 
-    # test morse
+    r_linker_site = 0.1
+    m_r_cut = r_linker + r_linker_site
+    m_particles = get_particles_with_ids(all_particles, ["linker", "linker_site"])
+    m_imatrix = create_interaction_matrix([("linker", "linker_site")])
+    m_cell_list = LinkedCellList(m_particles, m_r_cut, box)
+    m_params = [("linker", "linker_site", Dict())]
+    m = Morse(m_params, m_particles, m_cell_list, m_imatrix, box, false)
 
     brownian = Brownian(bodies, dt, kT, box, false)
 
