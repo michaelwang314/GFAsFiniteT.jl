@@ -73,6 +73,8 @@ function update_body!(body::Particle, dt::Float64, kT::Float64, box::SVector{3, 
     body.position[2] += dt_scaled * body.force[2] + amp * randn()
     body.position[3] += dt_scaled * body.force[3] + amp * randn()
 
+    fill!(body.force, 0.0)
+
     if !(0.0 <= body.position[1] < box[1])
         body.position[1] = mod(body.position[1], box[1])
     end
