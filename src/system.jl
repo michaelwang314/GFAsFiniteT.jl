@@ -97,3 +97,4 @@ function export_trajectories!(trajectories::Trajectories, filename::String, mult
         end
     end
 end
+export_trajectories!(trajectories::Trajectories, filename::String) = export_trajectories!(trajectories, filename, DataType[])
