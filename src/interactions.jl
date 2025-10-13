@@ -30,6 +30,15 @@ function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}
 
     return LennardJones(ϵ, σ, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
+function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+                      box::Vector{Float64}, multithreaded::Bool)
+    pair_ids = Vector{Tuple{String, String}}()
+    for (id1, id2, _) in params
+        push!(pair_ids, (id1, id2))
+    end
+
+    return LennardJones(params, particles, neighbor_list, create_interaction_matrix(pair_ids), box, multithreaded)
+end
 
 function compute_forces!(lj::LennardJones)
     @use_threads lj.multithreaded for particle in lj.particles
@@ -95,6 +104,15 @@ function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, par
     end
 
     return Morse(D0, α, r0, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
+end
+function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+               box::Vector{Float64}, multithreaded::Bool)
+    pair_ids = Vector{Tuple{String, String}}()
+    for (id1, id2, _) in params
+        push!(pair_ids, (id1, id2))
+    end
+
+    return Morse(params, particles, neighbor_list, create_interaction_matrix(pair_ids), box, multithreaded)
 end
 
 function compute_forces!(m::Morse)
