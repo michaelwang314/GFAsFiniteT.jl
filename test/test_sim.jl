@@ -64,7 +64,7 @@ function run!()
 
     brownian = Brownian(bodies, dt, kT, box, false)
 
-    system = System(bodies, [lj, m, hb], [lj_cell_list], brownian)
+    system = System(bodies, [lj, m, hb], [lj_cell_list, m_cell_list], brownian)
     trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
     #save_system!(system, "TEST_OUTPUT/system.out")
