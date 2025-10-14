@@ -2,7 +2,7 @@ using GFAsFiniteT
 
 function run!()
     box = [5.0, 5.0, 5.0]
-    num_steps = 1000000
+    num_steps = 100000
     save_interval = trunc(Int64, num_steps / 10000)
     dt = 0.0001
     kT = 1.0
@@ -65,9 +65,9 @@ function run!()
     brownian = Brownian(bodies, dt, kT, box, false)
 
     system = System(bodies, [lj, m, hb], [lj_cell_list], brownian)
-    trajectories = Trajectories(1, save_interval)
+    trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
     #save_system!(system, "TEST_OUTPUT/system.out")
-    export_trajectories!(trajectories, "TEST_OUTPUT/trajectories.txt", [RigidBody])
+    export_trajectories!(trajectories, "TEST_OUTPUT/trajectories_test.txt", [RigidBody])
 end
 run!()
