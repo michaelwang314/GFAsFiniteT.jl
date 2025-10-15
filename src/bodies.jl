@@ -191,7 +191,6 @@ function get_particle_list(bodies::Vector{<:Body}, multi_particle_types::Vector{
         else
             push!(particles, body)
         end
-
     end
     return particles
 end

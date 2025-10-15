@@ -32,7 +32,7 @@ function update_body!(body::RigidBody, dt::Float64, kT::Float64, box::SVector{3,
 
         rx, ry, rz = particle.position[1] - body.centroid[1], particle.position[2] - body.centroid[2], particle.position[3] - body.centroid[3]
         τx_total += ry * fz - fy * rz 
-        τy_total += -(rx * fz - fx * rz) 
+        τy_total -= rx * fz - fx * rz
         τz_total += rx * fy - fx * ry
 
         fill!(particle.force, 0.0)

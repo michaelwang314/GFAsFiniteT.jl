@@ -34,10 +34,13 @@ function run_simulation!(system::System, trajectories::Union{Trajectories, Nothi
         for interaction in system.interactions
             compute_forces!(interaction)
         end
+
         for external_force in system.external_forces
             compute_forces!(external_force)
         end
+
         update_bodies!(system.integrator)
+        
         for neighbor_list in system.neighbor_lists
             update_neighbor_list!(neighbor_list)
         end

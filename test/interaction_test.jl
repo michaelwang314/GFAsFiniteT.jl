@@ -11,9 +11,9 @@ function run!()
     ϵ = 1.0
     σ = 1.0
     lj_r_cut = 2 * 2^(1 / 6) * σ
+    lj_params = [("lj particle", "lj particle", Dict("ϵ" => ϵ, "σ" => σ, "r_cut" => lj_r_cut))]
     lj_particle_pair = [Particle(box ./ 2 .- [lj_r_cut / 4, 0.0, 0.0], "lj particle"), Particle(box ./ 2 .+ [lj_r_cut / 4, 0.0, 0.0], "lj particle")]
     lj_cell_list = LinkedCellList(lj_particle_pair, lj_r_cut, box)
-    lj_params = [("lj particle", "lj particle", Dict("ϵ" => ϵ, "σ" => σ, "r_cut" => lj_r_cut))]
     lj = LennardJones(lj_params, lj_particle_pair, lj_cell_list, box, false)
 
     # Pair of particles interacting via Morse
@@ -21,9 +21,9 @@ function run!()
     α = 10.0
     r0 = 0.1
     m_r_cut = 2.0
+    m_params = [("morse particle", "morse particle", Dict("D0" => D0, "α" => α, "r0" => r0, "r_cut" => m_r_cut))]
     m_particle_pair = [Particle(box ./ 2, "morse particle"), Particle(box ./ 2, "morse particle")]
     m_cell_list = LinkedCellList(m_particle_pair, m_r_cut, box)
-    m_params = [("morse particle", "morse particle", Dict("D0" => D0, "α" => α, "r0" => r0, "r_cut" => m_r_cut))]
     m = Morse(m_params, m_particle_pair, m_cell_list, box, false)
 
     # Pair of particles interacting via a harmonic bond
@@ -59,8 +59,9 @@ function run!()
     attractors = get_particles_with_ids(all_particles, ["$(d)$(i)" for d in ["N", "S", "E", "W"], i = 1 : 4][:])
     attractor_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
     hb_rigid = HarmonicBond(k_corners, 0.0, attractor_bond_list, box, false)
-    # 
-    bodies = [lj_particle_pair ; m_particle_pair ; hb_particle_pair; rigid_body_pair]
+    
+    # Initialize integrator and system
+    bodies = [lj_particle_pair ; m_particle_pair ; hb_particle_pair ; rigid_body_pair]
     brownian = Brownian(bodies, dt, kT, box, false)
     system = System(bodies, [lj, m, hb, hb_rigid], [lj_cell_list, m_cell_list], brownian)
 
