@@ -61,6 +61,7 @@ function run_simulation!(system::System, trajectories::Union{Trajectories, Nothi
             interval_start = time()
         end
     end
+    println("Average steps/s: ", round(num_steps / time_elapsed, digits = 1))
 end
 run_simulation!(system::System, num_steps::Int64; message_interval::Union{Float64, Nothing} = 10.0) = run_simulation!(system, nothing, num_steps; message_interval = message_interval)
 
