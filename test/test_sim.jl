@@ -2,16 +2,16 @@ using GFAsFiniteT
 
 function run!()
     box = [5.0, 5.0, 5.0]
-    num_steps = 100000
+    num_steps = 10000000
     save_interval = trunc(Int64, num_steps / 10000)
     dt = 0.0001
-    kT = 1.0
+    kT = 0.1
 
     a = 1.0
     t, w = a / sqrt(2), 0.0
-    k_corners = 1000.0
+    k_corners = 10.0
 
-    num_linkers = 0
+    num_linkers = 10
 
     north = [([0.0, a / 2, t / 2], "N1"), ([0.0, a / 2, -t / 2], "N2"), ([-w / 2, a / 2, 0.0], "N3"), ([w / 2, a / 2, 0.0], "N4")]
     south = [([0.0, -a / 2, t / 2], "S1"), ([0.0, -a / 2, -t / 2], "S2"), ([-w / 2, -a / 2, 0.0], "S3"), ([w / 2, -a / 2, 0.0], "S4")]
@@ -34,20 +34,17 @@ function run!()
         push!(bodies, new_rigid_body)
     end
 
-    # add linkers
-    push!(bodies, Particle(box ./ 2, "linker"))
-    push!(bodies, Particle([1.0, 1.0, 1.0], "linker"))
-
+    for n = 1 : num_linkers
+        push!(bodies, Particle(5 * rand(3), "linker"))
+    end
+    
     all_particles = get_particle_list(bodies, [RigidBody])
 
     r_excluder = a / (2 * sqrt(2))
-    r_linker = 0.1
-    lj_r_cut = maximum(2^(1 / 6) * [2 * r_excluder, r_excluder + r_linker, 2 * r_linker])
-    lj_particles = get_particles_with_ids(all_particles, ["central", "linker"])
+    lj_r_cut = 2^(1 / 6) * 2 * r_excluder
+    lj_particles = get_particles_with_ids(all_particles, ["central"])
     lj_cell_list = LinkedCellList(lj_particles, lj_r_cut, box)
-    lj_params = [("central", "central", Dict("ϵ" => 1.0, "σ" => 2 * r_excluder, "r_cut" => 2^(1 / 6) * 2 * r_excluder)), 
-                 ("central", "linker", Dict("ϵ" => 1.0, "σ" => r_excluder + r_linker, "r_cut" => 2^(1 / 6) * (r_excluder + r_linker))),
-                 ("linker", "linker", Dict("ϵ" => 1.0, "σ" => 2 * r_linker, "r_cut" => 2^(1 / 6) * 2 * r_linker))]
+    lj_params = [("central", "central", Dict("ϵ" => 1.0, "σ" => 2 * r_excluder, "r_cut" => lj_r_cut))]
     lj = LennardJones(lj_params, lj_particles, lj_cell_list, box, false)
 
     attractor_imatrix = create_interaction_matrix([[("N$i", "S$i") for i = 1 : 4]; [("E$i", "W$i") for i = 1 : 4]])
@@ -55,19 +52,20 @@ function run!()
     hb_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
     hb = HarmonicBond(k_corners, 0.0, hb_bond_list, box, false)
 
-    r_linker_site = 0.1
-    m_r_cut = r_linker + r_linker_site
-    m_particles = get_particles_with_ids(all_particles, ["linker", "linker_site"])
+    r_linker_site = 0.125
+    r_linker = 0.125
+    m_r_cut = r_linker_site + r_linker
+    m_particles = get_particles_with_ids(all_particles, ["linker_site", "linker"])
     m_cell_list = LinkedCellList(m_particles, m_r_cut, box)
-    m_params = [("linker", "linker_site", Dict("D0" => 15.0, "α" => 50.0, "r0" => 0.0, "r_cut" => m_r_cut))]
+    m_params = [("linker_site", "linker", Dict("D0" => 1.0, "α" => 2 / m_r_cut, "r0" => 0.0, "r_cut" => m_r_cut))]
     m = Morse(m_params, m_particles, m_cell_list, box, false)
 
     brownian = Brownian(bodies, dt, kT, box, false)
 
-    system = System(bodies, [lj, m, hb], [lj_cell_list, m_cell_list], brownian)
+    system = System(bodies, [lj, hb, m], [lj_cell_list, m_cell_list], brownian)
     trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
     #save_system!(system, "TEST_OUTPUT/system.out")
-    export_trajectories!(trajectories, "TEST_OUTPUT/trajectories_test.txt", [RigidBody])
+    export_trajectories!(trajectories, "TEST_OUTPUT/trajectories_tetramer_test.txt", [RigidBody])
 end
 run!()
