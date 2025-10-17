@@ -53,7 +53,7 @@ function LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, 
     next_index = -ones(Int64, length(particles))
     
     for (n, particle) in enumerate(particles)
-        i, j, k = floor.(Int64, mod.(particle.position, box) ./ cell_sizes)
+        i, j, k = floor.(Int64, mod.(particle.position, box) ./ cell_sizes) .+ 1
 
         if start_index[i, j, k] > 0
             next_index[n] = start_index[i, j, k]
