@@ -13,12 +13,7 @@ mutable struct Particle <: Body
     id::String
     body_id::Union{String, Nothing}
 end
-
-function Particle(position::Vector{Float64}, γ::Float64, id::String, body_id::Union{String, Nothing})
-    return Particle(position, [0.0, 0.0, 0.0], γ, id, body_id)
-end
 Particle(position::Vector{Float64}, γ::Float64, id::String) = Particle(position, [0.0, 0.0, 0.0], γ, id, nothing)
-Particle(position::Vector{Float64}, id::String) = Particle(position, [0.0, 0.0, 0.0], 1.0, id, nothing)
 
 ###########################################################################################################################################
 # Rigid body
@@ -37,18 +32,18 @@ mutable struct RigidBody <: Body
     γ_trans::Float64
 
     id::String
-end
 
-function RigidBody(centroid::Vector{Float64}, particles::Vector{Particle}, axes::Vector{Vector{Float64}}, moments::Vector{Float64}, γ_trans::Float64, id::String)
-    for particle in particles
-        particle.body_id = id
-    end
+    function RigidBody(centroid::Vector{Float64}, particles::Vector{Particle}, axes::Vector{Vector{Float64}}, moments::Vector{Float64}, γ_trans::Float64, id::String)
+        for particle in particles
+            particle.body_id = id
+        end
     
-    return RigidBody(centroid, particles, axes, moments, γ_trans, id)
+        return new(centroid, particles, axes, moments, γ_trans, id)
+    end
 end
 
 function RigidBody(particles::Vector{Particle}, id::String)
-    centroid = MVector{3}(0.0, 0.0, 0.0)
+    centroid = zeros(3)
     γ_total = 0.0
     I = zeros(3, 3)
     for particle in particles
@@ -58,8 +53,6 @@ function RigidBody(particles::Vector{Particle}, id::String)
         centroid .+= position * γ
         γ_total += γ
         I .+= γ * ((dot(position, position) * diagm([1.0, 1.0, 1.0])) .- (position * transpose(position)))
-
-        particle.body_id = id
     end
     centroid ./= γ_total
 
@@ -183,10 +176,10 @@ function set_body_ids!(body::RigidBody, id::String)
     end
 end
 
-function get_particle_list(bodies::Vector{<:Body}, multi_particle_types::Vector{DataType})
+function get_particle_list(bodies::Vector{<:Body})
     particles = Vector{Particle}()
     for body in bodies
-        if typeof(body) in multi_particle_types
+        if hasfield(typeof(body), :particles)
             append!(particles, body.particles)
         else
             push!(particles, body)

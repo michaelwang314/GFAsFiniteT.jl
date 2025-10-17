@@ -13,8 +13,7 @@ mutable struct Trajectories
     start::Int64
     period::Int64
 end
-Trajectories(start::Int64, period::Int64) = Trajectories(Vector{Vector{<:Body}}(), start, period)
-Trajectories(period::Int64) = Trajectories(1, period)
+Trajectories(period::Int64; start::Int64 = 1) = Trajectories(Vector{Vector{<:Body}}(), start, period)
 
 function hr_min_sec(time::Float64)
     hours = trunc(Int64, time / 3600.0)
@@ -87,7 +86,7 @@ function load_system(filename::String)
     end
 end
 
-function export_trajectories!(trajectories::Trajectories, filename::String, multi_particle_types::Vector{DataType})
+function export_trajectories!(trajectories::Trajectories, filename::String)
     if !isdir(dirname(filename))
         mkpath(dirname(filename))
     end
@@ -95,10 +94,9 @@ function export_trajectories!(trajectories::Trajectories, filename::String, mult
     open(filename, "w") do io
         write(io, "t, x, y, z, id, body id\n")
         for (t, bodies) in enumerate(trajectories.history)
-            for particle in get_particle_list(bodies, multi_particle_types)
+            for particle in get_particle_list(bodies)
                 write(io, "$(t), $(particle.position[1]), $(particle.position[2]), $(particle.position[3]), $(particle.id), $(particle.body_id)\n")
             end
         end
     end
 end
-export_trajectories!(trajectories::Trajectories, filename::String) = export_trajectories!(trajectories, filename, DataType[])

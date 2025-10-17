@@ -45,7 +45,7 @@ mutable struct LinkedCellList <: NeighborList
     update_counter::Int64
 end
 
-function LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, box::Vector{Float64}, update_interval::Int64)
+function LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, box::Vector{Float64}; update_interval::Int64 = 1)
     cell_counts = floor.(Int64, box ./ approx_cell_size)
     cell_sizes = box ./ cell_counts
 
@@ -63,7 +63,6 @@ function LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, 
 
     return LinkedCellList(particles, start_index, next_index, cell_counts, cell_sizes, box, update_interval, 1)
 end
-LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, box::Vector{Float64}) = LinkedCellList(particles, approx_cell_size, box, 1)
 
 function update_neighbor_list!(cell_list::LinkedCellList)
     if cell_list.update_counter == cell_list.update_interval

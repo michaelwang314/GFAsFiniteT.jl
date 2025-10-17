@@ -18,7 +18,7 @@ mutable struct LennardJones <: Interaction
 end
 
 function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
-                      interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}, multithreaded::Bool)
+                      interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}; multithreaded::Bool = false)
     ϵ = Dict{Tuple{String, String}, Float64}()
     σ = Dict{Tuple{String, String}, Float64}()
     r_cut = Dict{Tuple{String, String}, Float64}()
@@ -31,13 +31,13 @@ function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}
     return LennardJones(ϵ, σ, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
 function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
-                      box::Vector{Float64}, multithreaded::Bool)
+                      box::Vector{Float64}; multithreaded::Bool = false)
     pair_ids = Vector{Tuple{String, String}}()
     for (id1, id2, _) in params
         push!(pair_ids, (id1, id2))
     end
 
-    return LennardJones(params, particles, neighbor_list, create_interaction_matrix(pair_ids), box, multithreaded)
+    return LennardJones(params, particles, neighbor_list, create_interaction_matrix(pair_ids), box; multithreaded = multithreaded)
 end
 
 function compute_forces!(lj::LennardJones)
@@ -93,7 +93,7 @@ mutable struct Morse <: Interaction
 end
 
 function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
-               interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}, multithreaded::Bool)
+               interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}; multithreaded::Bool = false)
     D0 = Dict{Tuple{String, String}, Float64}()
     α = Dict{Tuple{String, String}, Float64}()
     r0 = Dict{Tuple{String, String}, Float64}()
@@ -108,13 +108,13 @@ function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, par
     return Morse(D0, α, r0, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
 function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
-               box::Vector{Float64}, multithreaded::Bool)
+               box::Vector{Float64}; multithreaded::Bool = false)
     pair_ids = Vector{Tuple{String, String}}()
     for (id1, id2, _) in params
         push!(pair_ids, (id1, id2))
     end
 
-    return Morse(params, particles, neighbor_list, create_interaction_matrix(pair_ids), box, multithreaded)
+    return Morse(params, particles, neighbor_list, create_interaction_matrix(pair_ids), box; multithreaded = multithreaded)
 end
 
 function compute_forces!(m::Morse)
@@ -165,6 +165,7 @@ mutable struct HarmonicBond <: Interaction
 
     multithreaded::Bool
 end
+HarmonicBond(k::Float64, r0::Float64, bond_list::BondList, box::Vector{Float64}; multithreaded::Bool = false) = HarmonicBond(k, r0, bond_list, box, multithreaded)
 
 function compute_forces!(hb::HarmonicBond)
     @use_threads hb.multithreaded for (particle, neighbors) in hb.bond_list.bonds

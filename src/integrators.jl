@@ -14,6 +14,7 @@ struct Brownian <: Integrator
 
     multithreaded::Bool
 end
+Brownian(bodies::Vector{<:Body}, dt::Float64, kT::Float64, box::Vector{Float64}; multithreaded::Bool = false) = Brownian(bodies, dt, kT, box, multithreaded)
 
 function update_bodies!(integrator::Brownian)
     @use_threads integrator.multithreaded for body in integrator.bodies
