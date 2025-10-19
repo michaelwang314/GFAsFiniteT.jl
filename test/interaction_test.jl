@@ -16,7 +16,7 @@ function run!()
     lj_params = [(:lj_particle, :lj_particle, Dict(:ϵ => ϵ, :σ => σ, :r_cut => lj_r_cut))]
     lj_particle_pair = [Particle(box ./ 2 .- [lj_r_cut / 4, 0.0, 0.0], γ, :lj_particle), Particle(box ./ 2 .+ [lj_r_cut / 4, 0.0, 0.0], γ, :lj_particle)]
     lj_cell_list = LinkedCellList(lj_particle_pair, lj_r_cut, box)
-    lj = LennardJones(lj_params, lj_particle_pair, lj_cell_list, box; multithreaded = false)
+    lj = LennardJones(lj_params, lj_cell_list, box; multithreaded = false)
 
     # Pair of particles interacting via Morse
     D0 = 5.0
@@ -26,7 +26,7 @@ function run!()
     m_params = [(:morse_particle, :morse_particle, Dict(:D0 => D0, :α => α, :r0 => r0, :r_cut => m_r_cut))]
     m_particle_pair = [Particle(box ./ 2, γ, :morse_particle), Particle(box ./ 2, γ, :morse_particle)]
     m_cell_list = LinkedCellList(m_particle_pair, m_r_cut, box)
-    m = Morse(m_params, m_particle_pair, m_cell_list, box; multithreaded = false)
+    m = Morse(m_params, m_cell_list, box; multithreaded = false)
 
     # Pair of particles interacting via a harmonic bond
     k = 20.0

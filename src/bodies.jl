@@ -11,9 +11,9 @@ mutable struct Particle <: Body
     γ::Float64
 
     id::Symbol
-    body_id::Union{Symbol, Nothing}
+    body_id::Symbol
 end
-Particle(position::Vector{Float64}, γ::Float64, id::Symbol) = Particle(position, [0.0, 0.0, 0.0], γ, id, nothing)
+Particle(position::Vector{Float64}, γ::Float64, id::Symbol) = Particle(position, [0.0, 0.0, 0.0], γ, id, :none)
 
 ###########################################################################################################################################
 # Rigid body

@@ -9,7 +9,6 @@ mutable struct LennardJones <: Interaction
     σ::Dict{Tuple{Symbol, Symbol}, Float64}
     r_cut::Dict{Tuple{Symbol, Symbol}, Float64}
 
-    particles::Vector{Particle}
     neighbor_list::LinkedCellList
     interaction_matrix::DefaultDict{Tuple{Symbol, Symbol}, Bool, Bool}
     box::SVector{3, Float64}
@@ -17,7 +16,7 @@ mutable struct LennardJones <: Interaction
     multithreaded::Bool
 end
 
-function LennardJones(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+function LennardJones(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, neighbor_list::LinkedCellList, 
                       interaction_matrix::DefaultDict{Tuple{Symbol, Symbol}, Bool, Bool}, box::Vector{Float64}; multithreaded::Bool = false)
     ϵ = Dict{Tuple{Symbol, Symbol}, Float64}()
     σ = Dict{Tuple{Symbol, Symbol}, Float64}()
@@ -28,20 +27,20 @@ function LennardJones(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}
         r_cut[id1, id2] = r_cut[id2, id1] = vals[:r_cut]
     end
 
-    return LennardJones(ϵ, σ, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
+    return LennardJones(ϵ, σ, r_cut, neighbor_list, interaction_matrix, box, multithreaded)
 end
-function LennardJones(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+function LennardJones(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, neighbor_list::LinkedCellList, 
                       box::Vector{Float64}; multithreaded::Bool = false)
     pair_ids = Vector{Tuple{Symbol, Symbol}}()
     for (id1, id2, _) in params
         push!(pair_ids, (id1, id2))
     end
 
-    return LennardJones(params, particles, neighbor_list, create_interaction_matrix(pair_ids), box; multithreaded = multithreaded)
+    return LennardJones(params, neighbor_list, create_interaction_matrix(pair_ids), box; multithreaded = multithreaded)
 end
 
 function compute_forces!(lj::LennardJones)
-    @use_threads lj.multithreaded for particle in lj.particles
+    @use_threads lj.multithreaded for particle in lj.neighbor_list.particles
         x, y, z = particle.position
         i = floor(Int64, mod(x, lj.box[1]) / lj.neighbor_list.cell_sizes[1])
         j = floor(Int64, mod(y, lj.box[2]) / lj.neighbor_list.cell_sizes[2])
@@ -55,7 +54,7 @@ function compute_forces!(lj::LennardJones)
             index = lj.neighbor_list.start_index[iΔi, jΔj, kΔk]
             while index > 0
                 neighbor = lj.neighbor_list.particles[index]
-                if lj.interaction_matrix[particle.id, neighbor.id] && (isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id)
+                if lj.interaction_matrix[particle.id, neighbor.id] && (particle.body_id == :none || neighbor.body_id == :none || particle.body_id != neighbor.body_id)
                     Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], lj.box)
                     
                     Δr² = Δx^2 + Δy^2 + Δz^2
@@ -84,7 +83,6 @@ mutable struct Morse <: Interaction
     r0::Dict{Tuple{Symbol, Symbol}, Float64}
     r_cut::Dict{Tuple{Symbol, Symbol}, Float64}
 
-    particles::Vector{Particle}
     neighbor_list::LinkedCellList
     interaction_matrix::DefaultDict{Tuple{Symbol, Symbol}, Bool, Bool}
     box::SVector{3, Float64}
@@ -92,7 +90,7 @@ mutable struct Morse <: Interaction
     multithreaded::Bool
 end
 
-function Morse(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+function Morse(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, neighbor_list::LinkedCellList, 
                interaction_matrix::DefaultDict{Tuple{Symbol, Symbol}, Bool, Bool}, box::Vector{Float64}; multithreaded::Bool = false)
     D0 = Dict{Tuple{Symbol, Symbol}, Float64}()
     α = Dict{Tuple{Symbol, Symbol}, Float64}()
@@ -105,20 +103,20 @@ function Morse(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, par
         r_cut[id1, id2] = r_cut[id2, id1] = vals[:r_cut]
     end
 
-    return Morse(D0, α, r0, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
+    return Morse(D0, α, r0, r_cut, neighbor_list, interaction_matrix, box, multithreaded)
 end
-function Morse(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+function Morse(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, neighbor_list::LinkedCellList, 
                box::Vector{Float64}; multithreaded::Bool = false)
     pair_ids = Vector{Tuple{Symbol, Symbol}}()
     for (id1, id2, _) in params
         push!(pair_ids, (id1, id2))
     end
 
-    return Morse(params, particles, neighbor_list, create_interaction_matrix(pair_ids), box; multithreaded = multithreaded)
+    return Morse(params, neighbor_list, create_interaction_matrix(pair_ids), box; multithreaded = multithreaded)
 end
 
 function compute_forces!(m::Morse)
-    @use_threads m.multithreaded for particle in m.particles
+    @use_threads m.multithreaded for particle in m.neighbor_list.particles
         x, y, z = particle.position
         i = floor(Int64, mod(x, m.box[1]) / m.neighbor_list.cell_sizes[1])
         j = floor(Int64, mod(y, m.box[2]) / m.neighbor_list.cell_sizes[2])
@@ -132,7 +130,7 @@ function compute_forces!(m::Morse)
             index = m.neighbor_list.start_index[iΔi, jΔj, kΔk]
             while index > 0
                 neighbor = m.neighbor_list.particles[index]
-                if m.interaction_matrix[particle.id, neighbor.id] && (isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id)
+                if m.interaction_matrix[particle.id, neighbor.id] && (particle.body_id == :none || neighbor.body_id == :none || particle.body_id != neighbor.body_id)
                     Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], m.box)
                     
                     Δr² = Δx^2 + Δy^2 + Δz^2

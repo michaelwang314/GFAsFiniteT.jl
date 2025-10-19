@@ -15,6 +15,9 @@ function run!()
     k_corners = 10.0
 
     num_linkers = 10
+    r_linker_site = 0.125
+    r_linker = 0.125
+    r_excluder = a / (2 * sqrt(2))
 
     north = [([0.0, a / 2, t / 2], γ_constituents, :N1), ([0.0, a / 2, -t / 2], γ_constituents, :N2), ([-w / 2, a / 2, 0.0], γ_constituents, :N3), ([w / 2, a / 2, 0.0], γ_constituents, :N4)]
     south = [([0.0, -a / 2, t / 2], γ_constituents, :S1), ([0.0, -a / 2, -t / 2], γ_constituents, :S2), ([-w / 2, -a / 2, 0.0], γ_constituents, :S3), ([w / 2, -a / 2, 0.0], γ_constituents, :S4)]
@@ -43,45 +46,25 @@ function run!()
     
     all_particles = get_particle_list(bodies)
     
-    subset = get_particles_with_ids(all_particles, [:excluder, :linker_site, :linker])
-    cell_list = LinkedCellList(subset, 2^(1 / 6) * 2 * a / (2 * sqrt(2)), box)
+    non_hb_particles = get_particles_with_ids(all_particles, [:excluder, :linker_site, :linker])
+    max_r_cut = maximum([2^(1 / 6) * 2 * r_excluder, 2^(1 / 6) * (r_excluder + r_linker), 2^(1 / 6) * 2 * r_linker, 2^(1 / 6) * (r_linker_site + r_linker)])
+    cell_list = LinkedCellList(non_hb_particles, max_r_cut, box)
 
-    r_linker_site = 0.125
-    r_linker = 0.125
-    m_r_cut = r_linker_site + r_linker
-    m_params = [(:linker_site, :linker, Dict(:D0 => 1.0, :α => 2 / m_r_cut, :r0 => 0.0, :r_cut => m_r_cut))]
-    m = Morse(m_params, subset, cell_list, box; multithreaded = false)
+    m_params = [(:linker_site, :linker, Dict(:D0 => 1.0, :α => 2 / (r_linker_site + r_linker), :r0 => 0.0, :r_cut => r_linker_site + r_linker))]
+    m = Morse(m_params, cell_list, box; multithreaded = false)
 
-    r_excluder = a / (2 * sqrt(2))
-    lj_r_cut = 2^(1 / 6) * 2 * r_excluder
-    lj_params = [(:central, :central, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => lj_r_cut)),
+    lj_params = [(:central, :central, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => 2^(1 / 6) * 2 * r_excluder)),
+                 (:central, :linker, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => 2^(1 / 6) * (r_linker + r_excluder))),
                  (:linker, :linker, Dict(:ϵ => 1.0, :σ => 2 * r_linker, :r_cut => 2^(1 / 6) * 2 * r_linker))]
-    lj = LennardJones(lj_params, subset, cell_list, box; multithreaded = false)
-
-    #=r_linker_site = 0.125
-    r_linker = 0.125
-    m_r_cut = r_linker_site + r_linker
-    m_particles = get_particles_with_ids(all_particles, [:linker_site, :linker])
-    m_cell_list = LinkedCellList(m_particles, m_r_cut, box)
-    m_params = [(:linker_site, :linker, Dict(:D0 => 1.0, :α => 2 / m_r_cut, :r0 => 0.0, :r_cut => m_r_cut))]
-    m = Morse(m_params, m_particles, m_cell_list, box; multithreaded = false)
-
-    r_excluder = a / (2 * sqrt(2))
-    lj_r_cut = 2^(1 / 6) * 2 * r_excluder
-    lj_particles = get_particles_with_ids(all_particles, [:central, :linker])
-    lj_cell_list = LinkedCellList(lj_particles, lj_r_cut, box)
-    lj_params = [(:central, :central, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => lj_r_cut)),
-                 (:linker, :linker, Dict(:ϵ => 1.0, :σ => 2 * r_linker, :r_cut => 2^(1 / 6) * 2 * r_linker))]
-    lj = LennardJones(lj_params, lj_particles, lj_cell_list, box; multithreaded = false)=#
-
-    attractor_imatrix = create_interaction_matrix([[(Symbol("N$i"), Symbol("S$i")) for i = 1 : 4]; [(Symbol("E$i"), Symbol("W$i")) for i = 1 : 4]])
+    lj = LennardJones(lj_params, cell_list, box; multithreaded = false)
+    
     attractors = get_particles_with_ids(all_particles, [Symbol("$(d)$(i)") for d in ["N", "S", "E", "W"], i = 1 : 4][:])
+    attractor_imatrix = create_interaction_matrix([[(Symbol("N$i"), Symbol("S$i")) for i = 1 : 4]; [(Symbol("E$i"), Symbol("W$i")) for i = 1 : 4]])
     hb_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
     hb = HarmonicBond(k_corners, 0.0, hb_bond_list, box; multithreaded = false)
 
     brownian = Brownian(bodies, dt, kT, box; multithreaded = false)
 
-    #system = System(bodies, [lj, hb, m], [lj_cell_list, m_cell_list], brownian)
     system = System(bodies, [lj, hb, m], [cell_list], brownian)
     trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
