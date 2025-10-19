@@ -55,11 +55,11 @@ function compute_forces!(lj::LennardJones)
             index = lj.neighbor_list.start_index[iΔi, jΔj, kΔk]
             while index > 0
                 neighbor = lj.neighbor_list.particles[index]
-                if isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id
+                if lj.interaction_matrix[particle.id, neighbor.id] && (isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id)
                     Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], lj.box)
                     
                     Δr² = Δx^2 + Δy^2 + Δz^2
-                    if lj.interaction_matrix[particle.id, neighbor.id] && 0.0 < Δr² < lj.r_cut[particle.id, neighbor.id]^2
+                    if 0.0 < Δr² < lj.r_cut[particle.id, neighbor.id]^2
                         val = (lj.σ[particle.id, neighbor.id]^2 / Δr²)^3
                         coef = lj.ϵ[particle.id, neighbor.id] * (48.0 * val - 24.0) * val / Δr²
 
@@ -132,11 +132,11 @@ function compute_forces!(m::Morse)
             index = m.neighbor_list.start_index[iΔi, jΔj, kΔk]
             while index > 0
                 neighbor = m.neighbor_list.particles[index]
-                if isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id
+                if m.interaction_matrix[particle.id, neighbor.id] && (isnothing(particle.body_id) || isnothing(neighbor.body_id) || particle.body_id != neighbor.body_id)
                     Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], m.box)
                     
                     Δr² = Δx^2 + Δy^2 + Δz^2
-                    if m.interaction_matrix[particle.id, neighbor.id] && 0.0 < Δr² < m.r_cut[particle.id, neighbor.id]^2
+                    if 0.0 < Δr² < m.r_cut[particle.id, neighbor.id]^2
                         Δr = sqrt(Δr²)
                         val = exp(-m.α[particle.id, neighbor.id] * (Δr - m.r0[particle.id, neighbor.id]))
                         coef = 2 * m.α[particle.id, neighbor.id] * m.D0[particle.id, neighbor.id] * val * (val - 1.0) / Δr
