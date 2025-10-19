@@ -15,16 +15,6 @@ mutable struct Trajectories
 end
 Trajectories(period::Int64; start::Int64 = 1) = Trajectories(Vector{Vector{<:Body}}(), start, period)
 
-function hr_min_sec(time::Float64)
-    hours = trunc(Int64, time / 3600.0)
-    minutes = trunc(Int64, mod(time, 3600.0) / 60.0)
-    seconds = trunc(Int64, mod(time, 60.0))
-
-    return string(hours < 10 ? "0" : "", hours, 
-                  minutes < 10 ? ":0" : ":", minutes, 
-                  seconds < 10 ? ":0" : ":", seconds)
-end
-
 function run_simulation!(system::System, trajectories::Union{Trajectories, Nothing}, num_steps::Int64; message_interval::Union{Float64, Nothing} = 10.0)
     prev_step = 0
     time_elapsed = 0.0
@@ -67,6 +57,16 @@ run_simulation!(system::System, num_steps::Int64; message_interval::Union{Float6
 ###########################################################################################################################################
 # 
 ###########################################################################################################################################
+
+function hr_min_sec(time::Float64)
+    hours = trunc(Int64, time / 3600.0)
+    minutes = trunc(Int64, mod(time, 3600.0) / 60.0)
+    seconds = trunc(Int64, mod(time, 60.0))
+
+    return string(hours < 10 ? "0" : "", hours, 
+                  minutes < 10 ? ":0" : ":", minutes, 
+                  seconds < 10 ? ":0" : ":", seconds)
+end
 
 function save_system!(system::System, filename::String)
     if !isdir(dirname(filename))

@@ -5,34 +5,34 @@ abstract type Interaction end
 ###########################################################################################################################################
 
 mutable struct LennardJones <: Interaction
-    ϵ::Dict{Tuple{String, String}, Float64}
-    σ::Dict{Tuple{String, String}, Float64}
-    r_cut::Dict{Tuple{String, String}, Float64}
+    ϵ::Dict{Tuple{Symbol, Symbol}, Float64}
+    σ::Dict{Tuple{Symbol, Symbol}, Float64}
+    r_cut::Dict{Tuple{Symbol, Symbol}, Float64}
 
     particles::Vector{Particle}
     neighbor_list::LinkedCellList
-    interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}
+    interaction_matrix::DefaultDict{Tuple{Symbol, Symbol}, Bool, Bool}
     box::SVector{3, Float64}
 
     multithreaded::Bool
 end
 
-function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
-                      interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}; multithreaded::Bool = false)
-    ϵ = Dict{Tuple{String, String}, Float64}()
-    σ = Dict{Tuple{String, String}, Float64}()
-    r_cut = Dict{Tuple{String, String}, Float64}()
+function LennardJones(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+                      interaction_matrix::DefaultDict{Tuple{Symbol, Symbol}, Bool, Bool}, box::Vector{Float64}; multithreaded::Bool = false)
+    ϵ = Dict{Tuple{Symbol, Symbol}, Float64}()
+    σ = Dict{Tuple{Symbol, Symbol}, Float64}()
+    r_cut = Dict{Tuple{Symbol, Symbol}, Float64}()
     for (id1, id2, vals) in params
-        ϵ[id1, id2] = ϵ[id2, id1] = vals["ϵ"]
-        σ[id1, id2] = σ[id2, id1] = vals["σ"]
-        r_cut[id1, id2] = r_cut[id2, id1] = vals["r_cut"]
+        ϵ[id1, id2] = ϵ[id2, id1] = vals[:ϵ]
+        σ[id1, id2] = σ[id2, id1] = vals[:σ]
+        r_cut[id1, id2] = r_cut[id2, id1] = vals[:r_cut]
     end
 
     return LennardJones(ϵ, σ, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
-function LennardJones(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+function LennardJones(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
                       box::Vector{Float64}; multithreaded::Bool = false)
-    pair_ids = Vector{Tuple{String, String}}()
+    pair_ids = Vector{Tuple{Symbol, Symbol}}()
     for (id1, id2, _) in params
         push!(pair_ids, (id1, id2))
     end
@@ -79,37 +79,37 @@ end
 ###########################################################################################################################################
 
 mutable struct Morse <: Interaction
-    D0::Dict{Tuple{String, String}, Float64}
-    α::Dict{Tuple{String, String}, Float64}
-    r0::Dict{Tuple{String, String}, Float64}
-    r_cut::Dict{Tuple{String, String}, Float64}
+    D0::Dict{Tuple{Symbol, Symbol}, Float64}
+    α::Dict{Tuple{Symbol, Symbol}, Float64}
+    r0::Dict{Tuple{Symbol, Symbol}, Float64}
+    r_cut::Dict{Tuple{Symbol, Symbol}, Float64}
 
     particles::Vector{Particle}
     neighbor_list::LinkedCellList
-    interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}
+    interaction_matrix::DefaultDict{Tuple{Symbol, Symbol}, Bool, Bool}
     box::SVector{3, Float64}
 
     multithreaded::Bool
 end
 
-function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
-               interaction_matrix::DefaultDict{Tuple{String, String}, Bool, Bool}, box::Vector{Float64}; multithreaded::Bool = false)
-    D0 = Dict{Tuple{String, String}, Float64}()
-    α = Dict{Tuple{String, String}, Float64}()
-    r0 = Dict{Tuple{String, String}, Float64}()
-    r_cut = Dict{Tuple{String, String}, Float64}()
+function Morse(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+               interaction_matrix::DefaultDict{Tuple{Symbol, Symbol}, Bool, Bool}, box::Vector{Float64}; multithreaded::Bool = false)
+    D0 = Dict{Tuple{Symbol, Symbol}, Float64}()
+    α = Dict{Tuple{Symbol, Symbol}, Float64}()
+    r0 = Dict{Tuple{Symbol, Symbol}, Float64}()
+    r_cut = Dict{Tuple{Symbol, Symbol}, Float64}()
     for (id1, id2, vals) in params
-        D0[id1, id2] = D0[id2, id1] = vals["D0"]
-        α[id1, id2] = α[id2, id1] = vals["α"]
-        r0[id1, id2] = r0[id2, id1] = vals["r0"]
-        r_cut[id1, id2] = r_cut[id2, id1] = vals["r_cut"]
+        D0[id1, id2] = D0[id2, id1] = vals[:D0]
+        α[id1, id2] = α[id2, id1] = vals[:α]
+        r0[id1, id2] = r0[id2, id1] = vals[:r0]
+        r_cut[id1, id2] = r_cut[id2, id1] = vals[:r_cut]
     end
 
     return Morse(D0, α, r0, r_cut, particles, neighbor_list, interaction_matrix, box, multithreaded)
 end
-function Morse(params::Vector{Tuple{String, String, Dict{String, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
+function Morse(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, particles::Vector{Particle}, neighbor_list::LinkedCellList, 
                box::Vector{Float64}; multithreaded::Bool = false)
-    pair_ids = Vector{Tuple{String, String}}()
+    pair_ids = Vector{Tuple{Symbol, Symbol}}()
     for (id1, id2, _) in params
         push!(pair_ids, (id1, id2))
     end
@@ -198,8 +198,8 @@ function wrap_displacement(Δx::Float64, Δy::Float64, Δz::Float64, box::SVecto
     return Δx, Δy, Δz
 end
 
-function create_interaction_matrix(pairs::Vector{Tuple{String, String}})
-    interaction_matrix = DefaultDict{Tuple{String, String}, Bool}(false)
+function create_interaction_matrix(pairs::Vector{Tuple{Symbol, Symbol}})
+    interaction_matrix = DefaultDict{Tuple{Symbol, Symbol}, Bool}(false)
     for (id1, id2) in pairs
         interaction_matrix[(id1, id2)] = interaction_matrix[(id2, id1)] = true
     end

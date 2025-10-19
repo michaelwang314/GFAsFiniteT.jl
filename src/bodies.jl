@@ -10,10 +10,10 @@ mutable struct Particle <: Body
 
     γ::Float64
 
-    id::String
-    body_id::Union{String, Nothing}
+    id::Symbol
+    body_id::Union{Symbol, Nothing}
 end
-Particle(position::Vector{Float64}, γ::Float64, id::String) = Particle(position, [0.0, 0.0, 0.0], γ, id, nothing)
+Particle(position::Vector{Float64}, γ::Float64, id::Symbol) = Particle(position, [0.0, 0.0, 0.0], γ, id, nothing)
 
 ###########################################################################################################################################
 # Rigid body
@@ -31,9 +31,9 @@ mutable struct RigidBody <: Body
     moments::SVector{3, Float64}
     γ_trans::Float64
 
-    id::String
+    id::Symbol
 
-    function RigidBody(centroid::Vector{Float64}, particles::Vector{Particle}, axes::Vector{Vector{Float64}}, moments::Vector{Float64}, γ_trans::Float64, id::String)
+    function RigidBody(centroid::Vector{Float64}, particles::Vector{Particle}, axes::Vector{Vector{Float64}}, moments::Vector{Float64}, γ_trans::Float64, id::Symbol)
         for particle in particles
             particle.body_id = id
         end
@@ -42,7 +42,7 @@ mutable struct RigidBody <: Body
     end
 end
 
-function RigidBody(particles::Vector{Particle}, id::String)
+function RigidBody(particles::Vector{Particle}, id::Symbol)
     centroid = zeros(3)
     γ_total = 0.0
     I = zeros(3, 3)
@@ -61,7 +61,7 @@ function RigidBody(particles::Vector{Particle}, id::String)
 
     return RigidBody(centroid, particles, axes, moments, γ_total, id)
 end
-RigidBody(particles::Vector{Particle}) = RigidBody(particles, "")
+RigidBody(particles::Vector{Particle}) = RigidBody(particles, :none)
 
 """
     rotate!(body, axis_x, axis_y, axis_z, θ)
@@ -169,7 +169,7 @@ translate!(bodies::Vector{RigidBody}, Δr::Vector{Float64}) = translate!(bodies,
 
 Set `id` of `body` as well as `body_id` of constituent particles
 """
-function set_body_ids!(body::RigidBody, id::String)
+function set_body_ids!(body::RigidBody, id::Symbol)
     body.id = id
     for particle in body.particles
         particle.body_id = id
@@ -188,7 +188,7 @@ function get_particle_list(bodies::Vector{<:Body})
     return particles
 end
 
-function get_particles_with_ids(particles::Vector{Particle}, ids::Vector{String})
+function get_particles_with_ids(particles::Vector{Particle}, ids::Vector{Symbol})
     subset = Vector{Particle}()
     for particle in particles
         if particle.id in ids
