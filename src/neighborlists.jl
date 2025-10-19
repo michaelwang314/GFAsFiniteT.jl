@@ -61,7 +61,7 @@ function LinkedCellList(particles::Vector{Particle}, approx_cell_size::Float64, 
         start_index[i, j, k] = n
     end
 
-    return LinkedCellList(particles, start_index, next_index, cell_counts, cell_sizes, box, update_interval, 1)
+    return LinkedCellList(particles, start_index, next_index, cell_counts, cell_sizes, box, update_interval, 1), minimum(cell_sizes .- approx_cell_size)
 end
 
 function update_neighbor_list!(cell_list::LinkedCellList)
