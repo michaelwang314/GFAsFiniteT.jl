@@ -1,8 +1,32 @@
 using GFAsFiniteT
+using ArgParse
+
+function parse_cmd()
+    s = ArgParseSettings()
+
+    @add_arg_table s begin
+        "--w"
+            arg_type = Float64
+            default = 1.0
+        "--numlinkers"
+            arg_type = Int64
+            default = 0
+        "--traj_filename"
+            arg_type = String
+            default = "trajectories_tetramer_test.txt"
+    end
+
+    return parse_args(s)
+end
 
 function run!()
+    cmd_args = parse_cmd()
+    w_scale = cmd_args["w"]
+    num_linkers = cmd_args["numlinkers"]
+    filename = cmd_args["traj_filename"]
+    
     box = [5.0, 5.0, 5.0]
-    num_steps = 1000000
+    num_steps = 10000000
     save_interval = trunc(Int64, num_steps / 10000)
     dt = 0.0001
     kT = 0.1
@@ -11,10 +35,10 @@ function run!()
     γ_constituents = 1.0;
 
     a = 1.0
-    t, w = a / sqrt(2), 0.0
-    k_corners = 10.0
+    t = a / sqrt(2)
+    w = w_scale * t
+    k_corners = 20.0
 
-    num_linkers = 10
     r_linker_site = 0.125
     r_linker = 0.125
     r_excluder = a / (2 * sqrt(2))
@@ -53,25 +77,25 @@ function run!()
     cell_list.update_interval = maximum([1, floor(Int64, padding^2 / (2 * 0.1 * 0.0001 / 1.0))])
     println("CellList update interval set to $(cell_list.update_interval)")
 
-    m_params = [(:linker_site, :linker, Dict(:D0 => 1.0, :α => 2 / (r_linker_site + r_linker), :r0 => 0.0, :r_cut => r_linker_site + r_linker))]
+    m_params = [(:linker_site, :linker, Dict(:D0 => 0.5, :α => 2 / (r_linker_site + r_linker), :r0 => 0.0, :r_cut => r_linker_site + r_linker))]
     m = Morse(m_params, cell_list, box; multithreaded = false)
 
+    #(:central, :linker, Dict(:ϵ => 1.0, :σ => r_excluder + r_linker, :r_cut => 2^(1 / 6) * (r_linker + r_excluder))),
     lj_params = [(:central, :central, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => 2^(1 / 6) * 2 * r_excluder)),
-                 (:central, :linker, Dict(:ϵ => 1.0, :σ => r_excluder + r_linker, :r_cut => 2^(1 / 6) * (r_linker + r_excluder))),
                  (:linker, :linker, Dict(:ϵ => 1.0, :σ => 2 * r_linker, :r_cut => 2^(1 / 6) * 2 * r_linker))]
-    lj = LennardJones(lj_params, cell_list, box; multithreaded = false)
+    lj = LennardJones(lj_params, cell_list, box; multithreaded = true)
     
     attractors = get_particles_with_ids(all_particles, [Symbol("$(d)$(i)") for d in ["N", "S", "E", "W"], i = 1 : 4][:])
     attractor_imatrix = create_interaction_matrix([[(Symbol("N$i"), Symbol("S$i")) for i = 1 : 4]; [(Symbol("E$i"), Symbol("W$i")) for i = 1 : 4]])
     hb_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
     hb = HarmonicBond(k_corners, 0.0, hb_bond_list, box; multithreaded = false)
 
-    brownian = Brownian(bodies, dt, kT, box; multithreaded = false)
+    brownian = Brownian(bodies, dt, kT, box; multithreaded = true)
 
     system = System(bodies, [lj, hb, m], [cell_list], brownian)
     trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
     #save_system!(system, :TEST_OUTPUT/system.out")
-    export_trajectories!(trajectories, "TEST_OUTPUT/trajectories_tetramer_test.txt")
+    export_trajectories!(trajectories, filename)
 end
 run!()
