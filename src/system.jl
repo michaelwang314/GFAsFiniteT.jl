@@ -67,7 +67,7 @@ function initialize_random_positions(N::Int64, r_cut::Float64, box::Vector{Float
         x_new, y_new, z_new = rand(3) .* box
 
         if !isnothing(excluded_region) && excluded_region(x_new, y_new, z_new)
-           attempt += 1
+           attempts += 1
            continue
         end
 
@@ -88,7 +88,7 @@ function initialize_random_positions(N::Int64, r_cut::Float64, box::Vector{Float
             end
         end
         if is_overlapping
-            attempt += 1
+            attempts += 1
             continue
         end
 
