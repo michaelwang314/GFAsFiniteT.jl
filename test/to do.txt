@@ -1,2 +1,5 @@
 - check memory allocations, type instabilities, and perform general optimizations
 - reproduce structures from PRL
+- add initialize for lattice positions
+- document code and add comments
+- look into Makie for visualizations
