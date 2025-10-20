@@ -61,7 +61,7 @@ function RigidBody(particles::Vector{Particle}, id::Symbol)
 
     return RigidBody(centroid, particles, axes, moments, γ_total, id)
 end
-RigidBody(particles::Vector{Particle}) = RigidBody(particles, :none)
+RigidBody(particles::Vector{Particle}) = RigidBody(particles, :temp_id)
 
 """
     rotate!(body, axis_x, axis_y, axis_z, θ)
