@@ -54,6 +54,60 @@ function run_simulation!(system::System, trajectories::Union{Trajectories, Nothi
 end
 run_simulation!(system::System, num_steps::Int64; message_interval::Union{Float64, Nothing} = 10.0) = run_simulation!(system, nothing, num_steps; message_interval = message_interval)
 
+function initialize_random_positions(N::Int64, r_cut::Float64, box::Vector{Float64}; max_attempts::Int64 = 100, excluded_region::Union{Function, Nothing} = nothing)
+    positions = Vector{Vector{Float64}}()
+
+    cell_counts = floor.(Int64, box ./ r_cut)
+    cell_sizes = box ./ cell_counts
+    cell_ids = DefaultDict{Tuple{Int64, Int64, Int64}, Vector{Int64}}(Vector{Int64}())
+
+    n = 0
+    attempts = 0
+    while n < N && attempts < max_attempts 
+        x_new, y_new, z_new = rand(3) .* box
+
+        if !isnothing(excluded_region) && excluded_region(x_new, y_new, z_new)
+           attempt += 1
+           continue
+        end
+
+        is_overlapping = false
+        i, j, k = floor.(Int64, [x_new, y_new, z_new] ./ cell_sizes) .+ 1
+        for Δi = -1 : 1, Δj = -1 : 1, Δk = -1 : 1
+            iΔi, jΔj, kΔk = mod.([i + Δi, j + Δj, k + Δk], cell_counts) .+ 1
+            for check_id in cell_ids[iΔi, jΔj, kΔk]
+                x_check, y_check, z_check = positions[check_id]
+
+                if (x_check - x_new)^2 + (y_check - y_new)^2 + (z_check - z_new)^2 < r_cut^2
+                    is_overlapping = true
+                    break
+                end
+            end
+            if is_overlapping
+                break
+            end
+        end
+        if is_overlapping
+            attempt += 1
+            continue
+        end
+
+        n += 1
+        push!(cell_ids[i, j, k], n)
+        push!(positions, [x_new, y_new, z_new])
+    end
+
+    if attempts == max_attempts
+        println("Maximum attempts reached when initializing random positions.  Not all positions were generated.")
+    end
+
+    return positions
+end
+
+function initialize_lattice_positions()
+    # to be finished
+end
+
 ###########################################################################################################################################
 # 
 ###########################################################################################################################################

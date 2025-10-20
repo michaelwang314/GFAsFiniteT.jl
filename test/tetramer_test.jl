@@ -40,8 +40,9 @@ function run!()
         push!(bodies, new_rigid_body)
     end
 
-    for n = 1 : num_linkers
-        push!(bodies, Particle(5 * rand(3), γ_linker, :linker))
+    excluded(x, y, z) = 1.5 < x < 3.5 && 1.5 < y < 3.5 && 2.0 < z < 3.0
+    for position in initialize_random_positions(num_linkers, 2^(1 / 6) * 2 * r_linker, box; excluded_region = excluded)
+        push!(bodies, Particle(position, γ_linker, :linker))
     end
     
     all_particles = get_particle_list(bodies)
