@@ -57,7 +57,7 @@ function run!()
     m = Morse(m_params, cell_list, box; multithreaded = false)
 
     lj_params = [(:central, :central, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => 2^(1 / 6) * 2 * r_excluder)),
-                 (:central, :linker, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => 2^(1 / 6) * (r_linker + r_excluder))),
+                 (:central, :linker, Dict(:ϵ => 1.0, :σ => r_excluder + r_linker, :r_cut => 2^(1 / 6) * (r_linker + r_excluder))),
                  (:linker, :linker, Dict(:ϵ => 1.0, :σ => 2 * r_linker, :r_cut => 2^(1 / 6) * 2 * r_linker))]
     lj = LennardJones(lj_params, cell_list, box; multithreaded = false)
     
