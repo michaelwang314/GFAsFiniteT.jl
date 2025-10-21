@@ -1,5 +1,5 @@
 using GFAsFiniteT
-using ArgParse
+#=using ArgParse
 
 function parse_cmd()
     s = ArgParseSettings()
@@ -13,20 +13,24 @@ function parse_cmd()
             default = 0
         "--traj_filename"
             arg_type = String
-            default = "trajectories_tetramer_test.txt"
+            default = "TEST_OUTPUTS/trajectories_tetramer_test.txt"
     end
 
     return parse_args(s)
-end
+end=#
 
 function run!()
-    cmd_args = parse_cmd()
+    #=cmd_args = parse_cmd()
     w_scale = cmd_args["w"]
     num_linkers = cmd_args["numlinkers"]
-    filename = cmd_args["traj_filename"]
+    filename = cmd_args["traj_filename"]=#
+    w_scale = 1.0
+    num_linkers = 0
+    sys_filename = "TEST_OUTPUTS/system_tetramer_test.txt"
+    traj_filename = "TEST_OUTPUTS/trajectories_tetramer_test.txt"
     
     box = [5.0, 5.0, 5.0]
-    num_steps = 10000000
+    num_steps = 1000000
     save_interval = trunc(Int64, num_steps / 10000)
     dt = 0.0001
     kT = 0.1
@@ -95,7 +99,7 @@ function run!()
     system = System(bodies, [lj, hb, m], [cell_list], brownian)
     trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
-    #save_system!(system, :TEST_OUTPUT/system.out")
-    export_trajectories!(trajectories, filename)
+    save_system!(system, sys_filename)
+    export_trajectories!(trajectories, traj_filename)
 end
 run!()
