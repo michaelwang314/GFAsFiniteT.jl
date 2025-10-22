@@ -3,3 +3,5 @@
 - add initialize for lattice positions
 - document code and add comments
 - look into Makie for visualizations
+    - translate test script into working module
+- allow 2D simulations
