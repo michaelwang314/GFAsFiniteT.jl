@@ -25,7 +25,7 @@ function run!()
     num_linkers = cmd_args["numlinkers"]
     filename = cmd_args["traj_filename"]=#
     w_scale = 1.0
-    num_linkers = 0
+    num_linkers = 10
     sys_filename = "TEST_OUTPUTS/system_tetramer_test.txt"
     traj_filename = "TEST_OUTPUTS/trajectories_tetramer_test.txt"
     
