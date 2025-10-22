@@ -122,7 +122,11 @@ function hr_min_sec(time::Float64)
                   seconds < 10 ? ":0" : ":", seconds)
 end
 
-function save_system!(system::System, filename::String)
+function get_ext(filename::String)
+    return filename[findlast(isequal('.'), filename) : end]
+end
+
+function save!(system::System, filename::String)
     if !isdir(dirname(filename))
         mkpath(dirname(filename))
     end
@@ -130,27 +134,39 @@ function save_system!(system::System, filename::String)
     open(filename, "w") do io
         serialize(io, system)
     end
+
+    println("$(filename) saved!")
 end
 
-function load_system(filename::String)
-    return begin
-        open(filename, "r") do io
-            deserialize(io)
-        end
-    end
-end
-
-function export_trajectories!(trajectories::Trajectories, filename::String)
+function save!(trajectories::Trajectories, filename::String)
     if !isdir(dirname(filename))
         mkpath(dirname(filename))
     end
 
-    open(filename, "w") do io
-        write(io, "t, x, y, z, id, body id\n")
-        for (t, bodies) in enumerate(trajectories.history)
-            for particle in get_particle_list(bodies)
-                write(io, "$(t), $(particle.position[1]), $(particle.position[2]), $(particle.position[3]), $(particle.id), $(particle.body_id)\n")
+    if get_ext(filename) == ".txt"
+        open(filename, "w") do io
+            write(io, "t, x, y, z, id, body id\n")
+            for (t, bodies) in enumerate(trajectories.history)
+                for particle in get_particle_list(bodies)
+                    write(io, "$(t), $(particle.position[1]), $(particle.position[2]), $(particle.position[3]), $(particle.id), $(particle.body_id)\n")
+                end
             end
         end
+    else
+        open(filename, "w") do io
+            serialize(io, trajectories)
+        end
     end
+    println("$(filename) saved!")
+end
+
+function load(filename::String)
+    object = begin
+        open(filename, "r") do io
+            deserialize(io)
+        end
+    end
+    println("$(filename) loaded!")
+
+    return object
 end

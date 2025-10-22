@@ -26,7 +26,7 @@ function run!()
     filename = cmd_args["traj_filename"]=#
     w_scale = 1.0
     num_linkers = 10
-    sys_filename = "TEST_OUTPUTS/system_tetramer_test.txt"
+    sys_filename = "TEST_OUTPUTS/system_tetramer_test.out"
     traj_filename = "TEST_OUTPUTS/trajectories_tetramer_test.txt"
     
     box = [5.0, 5.0, 5.0]
@@ -99,7 +99,7 @@ function run!()
     system = System(bodies, [lj, hb, m], [cell_list], brownian)
     trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
-    save_system!(system, sys_filename)
-    export_trajectories!(trajectories, traj_filename)
+    save!(system, sys_filename)
+    save!(trajectories, traj_filename)
 end
 run!()

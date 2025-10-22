@@ -69,7 +69,7 @@ function run!()
 
     trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
-    #save_system!(system, "TEST_OUTPUT/system.out)
-    export_trajectories!(trajectories, "TEST_OUTPUT/trajectories_interaction_test.txt")
+    #save!(system, "TEST_OUTPUT/system.out)
+    save!(trajectories, "TEST_OUTPUT/trajectories_interaction_test.txt")
 end
 run!()
