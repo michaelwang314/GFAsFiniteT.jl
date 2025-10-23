@@ -24,12 +24,12 @@ function run!()
     w_scale = cmd_args["w"]
     num_linkers = cmd_args["numlinkers"]
     filename = cmd_args["traj_filename"]=#
-    w_scale = 1.0
-    num_linkers = 10
+    w_scale = 0.0
+    num_linkers = 20
     sys_filename = "TEST_OUTPUTS/system_tetramer_test.out"
     traj_filename = "TEST_OUTPUTS/trajectories_tetramer_test.txt"
     
-    box = [5.0, 5.0, 5.0]
+    box = [4.0, 4.0, 4.0]
     num_steps = 1000000
     save_interval = trunc(Int64, num_steps / 10000)
     dt = 0.0001
@@ -68,7 +68,7 @@ function run!()
         push!(bodies, new_rigid_body)
     end
 
-    excluded(x, y, z) = 1.5 < x < 3.5 && 1.5 < y < 3.5 && 2.0 < z < 3.0
+    excluded(x, y, z) = box[1] / 2 - 1.0 < x < box[1] / 2 + 1.0 && box[2] / 2 - 1.0 < y < box[2] / 2 + 1.0 && box[3] / 2 - 0.5 < z < box[3] / 2 + 0.5
     for position in initialize_random_positions(num_linkers, 2^(1 / 6) * 2 * r_linker, box; excluded_region = excluded)
         push!(bodies, Particle(position, γ_linker, :linker))
     end
