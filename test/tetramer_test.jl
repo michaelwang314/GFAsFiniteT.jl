@@ -78,7 +78,7 @@ function run!()
     non_hb_particles = get_particles_with_ids(all_particles, [:central, :linker_site, :linker])
     max_r_cut = maximum([2^(1 / 6) * 2 * r_excluder, 2^(1 / 6) * (r_excluder + r_linker), 2^(1 / 6) * 2 * r_linker, r_linker_site + r_linker])
     cell_list, padding = LinkedCellList(non_hb_particles, max_r_cut, box)
-    cell_list.update_interval = maximum([1, floor(Int64, padding^2 / (2 * 0.1 * 0.0001 / 1.0))])
+    cell_list.update_interval = maximum([1, floor(Int64, 0.75 * padding^2 / (2 * 0.1 * 0.0001 / 1.0))])
     println("CellList update interval set to $(cell_list.update_interval)")
 
     m_params = [(:linker_site, :linker, Dict(:D0 => 0.5, :α => 2 / (r_linker_site + r_linker), :r0 => 0.0, :r_cut => r_linker_site + r_linker))]
