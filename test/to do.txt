@@ -5,3 +5,5 @@
 - look into Makie for visualizations
     - translate test script into working module
 - allow 2D simulations
+- add StaticHarmonicTrap and MovingHarmonicTrap (uses function for position)
+- check if converting start_id to Vector instead of Array{, 3} is better

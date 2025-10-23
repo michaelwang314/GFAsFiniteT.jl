@@ -68,7 +68,7 @@ RigidBody(particles::Vector{Particle}) = RigidBody(particles, :temp_id)
 
 Rotate `body` about an axis `[axis_x, axis_y, axis_z]` around its centroid by an angle `θ`
 """
-function rotate!(body::RigidBody, axis_x::Float64, axis_y::Float64, axis_z::Float64, θ::Float64)
+@inline function rotate!(body::RigidBody, axis_x::Float64, axis_y::Float64, axis_z::Float64, θ::Float64)
     sin, cos = sincos(θ)
     Rxx, Rxy, Rxz = cos + axis_x^2 * (1 - cos), axis_x * axis_y * (1 - cos) - axis_z * sin, axis_x * axis_z * (1 - cos) + axis_y * sin
     Ryx, Ryy, Ryz = axis_y * axis_x * (1 - cos) + axis_z * sin, cos + axis_y^2 * (1 - cos), axis_y * axis_z * (1 - cos) - axis_x * sin
@@ -83,7 +83,11 @@ function rotate!(body::RigidBody, axis_x::Float64, axis_y::Float64, axis_z::Floa
     end
 
     for axis in body.axes
-        axis[1], axis[2], axis[3] = Rxx * axis[1] + Rxy * axis[2] + Rxz * axis[3], Ryx * axis[1] + Ryy * axis[2] + Ryz * axis[3], Rzx * axis[1] + Rzy * axis[2] + Rzz * axis[3]
+        axis[1], axis[2], axis[3] = begin
+            Rxx * axis[1] + Rxy * axis[2] + Rxz * axis[3], 
+            Ryx * axis[1] + Ryy * axis[2] + Ryz * axis[3], 
+            Rzx * axis[1] + Rzy * axis[2] + Rzz * axis[3]
+        end
     end
 end
 rotate!(body::RigidBody, axis::Vector{Float64}, θ::Float64) = rotate!(body, axis[1], axis[2], axis[3], θ)
@@ -114,7 +118,11 @@ function rotate!(body::RigidBody, origin_x::Float64, origin_y::Float64, origin_z
     end
 
     for axis in body.axes
-        axis[1], axis[2], axis[3] = Rxx * axis[1] + Rxy * axis[2] + Rxz * axis[3], Ryx * axis[1] + Ryy * axis[2] + Ryz * axis[3], Rzx * axis[1] + Rzy * axis[2] + Rzz * axis[3]
+        axis[1], axis[2], axis[3] = begin
+            Rxx * axis[1] + Rxy * axis[2] + Rxz * axis[3], 
+            Ryx * axis[1] + Ryy * axis[2] + Ryz * axis[3], 
+            Rzx * axis[1] + Rzy * axis[2] + Rzz * axis[3]
+        end
     end
 end
 rotate!(body::RigidBody, origin::Vector{Float64}, axis::Vector{Float64}, θ) = rotate!(body, origin[1], origin[2], origin[3], axis[1], axis[2], axis[3], θ)
@@ -136,7 +144,7 @@ rotate!(bodies::Vector{RigidBody}, origin::Vector{Float64}, axis::Vector{Float64
 
 Translate a `body` by `[Δx, Δy, Δz]`
 """
-function translate!(body::RigidBody, Δx::Float64, Δy::Float64, Δz::Float64)
+@inline function translate!(body::RigidBody, Δx::Float64, Δy::Float64, Δz::Float64)
     body.centroid[1] += Δx
     body.centroid[2] += Δy
     body.centroid[3] += Δz

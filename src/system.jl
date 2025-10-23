@@ -72,9 +72,9 @@ function initialize_random_positions(N::Int64, r_cut::Float64, box::Vector{Float
         end
 
         is_overlapping = false
-        i, j, k = floor.(Int64, [x_new, y_new, z_new] ./ cell_sizes) .+ 1
+        i, j, k = floor.(Int64, [x_new, y_new, z_new] ./ cell_sizes)
         for Δi = -1 : 1, Δj = -1 : 1, Δk = -1 : 1
-            iΔi, jΔj, kΔk = mod.([i + Δi, j + Δj, k + Δk], cell_counts) .+ 1
+            iΔi, jΔj, kΔk = mod.([i + Δi, j + Δj, k + Δk], cell_counts)
             for check_id in cell_ids[iΔi, jΔj, kΔk]
                 x_check, y_check, z_check = positions[check_id]
 
@@ -112,7 +112,7 @@ end
 # 
 ###########################################################################################################################################
 
-function hr_min_sec(time::Float64)
+@inline function hr_min_sec(time::Float64)
     hours = trunc(Int64, time / 3600.0)
     minutes = trunc(Int64, mod(time, 3600.0) / 60.0)
     seconds = trunc(Int64, mod(time, 60.0))

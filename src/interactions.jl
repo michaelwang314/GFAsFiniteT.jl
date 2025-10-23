@@ -55,7 +55,7 @@ function compute_forces!(lj::LennardJones)
             while index > 0
                 neighbor = lj.neighbor_list.particles[index]
                 if lj.interaction_matrix[particle.id, neighbor.id] && (particle.body_id == :none || neighbor.body_id == :none || particle.body_id != neighbor.body_id)
-                    Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], lj.box)
+                    Δx, Δy, Δz = correct_for_periodicity(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], lj.box)
                     
                     Δr² = Δx^2 + Δy^2 + Δz^2
                     if 0.0 < Δr² < lj.r_cut[particle.id, neighbor.id]^2
@@ -131,7 +131,7 @@ function compute_forces!(m::Morse)
             while index > 0
                 neighbor = m.neighbor_list.particles[index]
                 if m.interaction_matrix[particle.id, neighbor.id] && (particle.body_id == :none || neighbor.body_id == :none || particle.body_id != neighbor.body_id)
-                    Δx, Δy, Δz = wrap_displacement(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], m.box)
+                    Δx, Δy, Δz = correct_for_periodicity(x - neighbor.position[1], y - neighbor.position[2], z - neighbor.position[3], m.box)
                     
                     Δr² = Δx^2 + Δy^2 + Δz^2
                     if 0.0 < Δr² < m.r_cut[particle.id, neighbor.id]^2
@@ -168,7 +168,7 @@ HarmonicBond(k::Float64, r0::Float64, bond_list::BondList, box::Vector{Float64};
 function compute_forces!(hb::HarmonicBond)
     @use_threads hb.multithreaded for (particle, neighbors) in hb.bond_list.bonds
         for neighbor in neighbors
-            Δx, Δy, Δz = wrap_displacement(particle.position[1] - neighbor.position[1], particle.position[2] - neighbor.position[2], particle.position[3] - neighbor.position[3], hb.box)
+            Δx, Δy, Δz = correct_for_periodicity(particle.position[1] - neighbor.position[1], particle.position[2] - neighbor.position[2], particle.position[3] - neighbor.position[3], hb.box)
             coef = -hb.k * (hb.r0 == 0.0 ? 1.0 : 1.0 - hb.r0 / sqrt(Δx^2 + Δy^2 + Δz^2))
             
             particle.force[1] += coef * Δx
@@ -182,7 +182,7 @@ end
 # Additional functions
 ###########################################################################################################################################
 
-function wrap_displacement(Δx::Float64, Δy::Float64, Δz::Float64, box::SVector{3, Float64})
+@inline function correct_for_periodicity(Δx::Float64, Δy::Float64, Δz::Float64, box::SVector{3, Float64})
     if abs(Δx) > 0.5 * box[1]
         Δx -= sign(Δx) * box[1]
     end
