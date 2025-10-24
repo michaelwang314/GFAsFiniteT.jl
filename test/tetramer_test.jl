@@ -25,7 +25,7 @@ function run!()
     num_linkers = cmd_args["numlinkers"]
     filename = cmd_args["traj_filename"]=#
     w_scale = 0.0
-    num_linkers = 0
+    num_linkers = 20
     sys_filename = "TEST_OUTPUTS/system_tetramer_test.out"
     traj_filename = "TEST_OUTPUTS/trajectories_tetramer_test.txt"
     
@@ -43,8 +43,8 @@ function run!()
     w = w_scale * t
     k_corners = 20.0
 
-    r_linker_site = 0.125
-    r_linker = 0.125
+    r_linker_site = 0.13
+    r_linker = 0.13
     r_excluder = a / (2 * sqrt(2))
 
     north = [([0.0, a / 2, t / 2], γ_constituents, :N1), ([0.0, a / 2, -t / 2], γ_constituents, :N2), ([-w / 2, a / 2, 0.0], γ_constituents, :N3), ([w / 2, a / 2, 0.0], γ_constituents, :N4)]
