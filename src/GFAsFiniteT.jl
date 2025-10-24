@@ -37,6 +37,4 @@ module GFAsFiniteT
     include("externalforces.jl")
     include("integrators.jl")
     include("system.jl")
-
-    #include("visualizer/Visualizer.jl")
 end
