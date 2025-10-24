@@ -25,14 +25,14 @@ function run!()
     num_linkers = cmd_args["numlinkers"]
     filename = cmd_args["traj_filename"]=#
     w_scale = 0.0
-    num_linkers = 20
+    num_linkers = 0
     sys_filename = "TEST_OUTPUTS/system_tetramer_test.out"
     traj_filename = "TEST_OUTPUTS/trajectories_tetramer_test.txt"
     
-    box = [4.0, 4.0, 4.0]
+    box = [5.0, 5.0, 5.0]
     num_steps = 1000000
     save_interval = trunc(Int64, num_steps / 10000)
-    dt = 0.0001
+    dt = 0.0005
     kT = 0.1
 
     γ_linker = 1.0;
@@ -75,7 +75,7 @@ function run!()
     
     all_particles = get_particle_list(bodies)
     
-    non_hb_particles = get_particles_with_ids(all_particles, [:central, :linker_site, :linker])
+    #=non_hb_particles = get_particles_with_ids(all_particles, [:central, :linker_site, :linker])
     max_r_cut = maximum([2^(1 / 6) * 2 * r_excluder, 2^(1 / 6) * (r_excluder + r_linker), 2^(1 / 6) * 2 * r_linker, r_linker_site + r_linker])
     cell_list, padding = LinkedCellList(non_hb_particles, max_r_cut, box)
     cell_list.update_interval = maximum([1, floor(Int64, 0.75 * padding^2 / (2 * 0.1 * 0.0001 / 1.0))])
@@ -87,8 +87,27 @@ function run!()
     #(:central, :linker, Dict(:ϵ => 1.0, :σ => r_excluder + r_linker, :r_cut => 2^(1 / 6) * (r_linker + r_excluder))),
     lj_params = [(:central, :central, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => 2^(1 / 6) * 2 * r_excluder)),
                  (:linker, :linker, Dict(:ϵ => 1.0, :σ => 2 * r_linker, :r_cut => 2^(1 / 6) * 2 * r_linker))]
-    lj = LennardJones(lj_params, cell_list, box; multithreaded = true)
+    lj = LennardJones(lj_params, cell_list, box; multithreaded = true)=#
     
+    small_particles = get_particles_with_ids(all_particles, [:linker_site, :linker])
+    small_cell_list, padding = LinkedCellList(small_particles, maximum([r_linker_site + r_linker, 2^(1 / 6) * 2 * r_linker]), box)
+    small_cell_list.update_interval = maximum([1, floor(Int64, 0.75 * padding^2 / (2 * kT * dt / 1.0))])
+    println("CellList update interval set to $(small_cell_list.update_interval)")
+
+    large_particles = get_particles_with_ids(all_particles, [:central])
+    large_cell_list, padding = LinkedCellList(large_particles, 2^(1 / 6) * 2 * r_excluder, box)
+    large_cell_list.update_interval = maximum([1, floor(Int64, 0.75 * padding^2 / (2 * kT * dt / 10.0))])
+    println("CellList update interval set to $(large_cell_list.update_interval)")
+
+    m_params = [(:linker_site, :linker, Dict(:D0 => 0.5, :α => 2 / (r_linker_site + r_linker), :r0 => 0.0, :r_cut => r_linker_site + r_linker))]
+    m = Morse(m_params, small_cell_list, box; multithreaded = false)
+
+    linker_lj_params = [(:linker, :linker, Dict(:ϵ => 1.0, :σ => 2 * r_linker, :r_cut => 2^(1 / 6) * 2 * r_linker))]
+    linker_lj = LennardJones(linker_lj_params, small_cell_list, box; multithreaded = true)
+
+    excluder_lj_params = [(:central, :central, Dict(:ϵ => 1.0, :σ => 2 * r_excluder, :r_cut => 2^(1 / 6) * 2 * r_excluder))]
+    excluder_lj = LennardJones(excluder_lj_params, large_cell_list, box; multithreaded = false)
+
     attractors = get_particles_with_ids(all_particles, [Symbol("$(d)$(i)") for d in ["N", "S", "E", "W"], i = 1 : 4][:])
     attractor_imatrix = create_interaction_matrix([[(Symbol("N$i"), Symbol("S$i")) for i = 1 : 4]; [(Symbol("E$i"), Symbol("W$i")) for i = 1 : 4]])
     hb_bond_list = bind_closest(attractors, 0.01, attractor_imatrix)
@@ -96,7 +115,8 @@ function run!()
 
     brownian = Brownian(bodies, dt, kT, box; multithreaded = true)
 
-    system = System(bodies, [lj, hb, m], [cell_list], brownian)
+    #system = System(bodies, [lj, hb, m], [cell_list], brownian)
+    system = System(bodies, [excluder_lj, linker_lj, hb, m], [small_cell_list, large_cell_list], brownian)
     trajectories = Trajectories(save_interval)
     run_simulation!(system, trajectories, num_steps)
     save!(system, sys_filename)
