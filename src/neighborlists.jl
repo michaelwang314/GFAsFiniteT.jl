@@ -68,7 +68,6 @@ end
 function update_neighbor_list!(cell_list::LinkedCellList)
     if (cell_list.update_counter += 1) == cell_list.update_interval
         fill!(cell_list.start_index, -1)
-        fill!(cell_list.next_index, -1)
 
         for (n, particle) in enumerate(cell_list.particles)
             i = floor(Int64, mod(particle.position[1], cell_list.box[1]) / cell_list.cell_sizes[1]) + 1
@@ -77,6 +76,8 @@ function update_neighbor_list!(cell_list::LinkedCellList)
 
             if cell_list.start_index[i, j, k] > 0
                 cell_list.next_index[n] = cell_list.start_index[i, j, k]
+            else
+                cell_list.next_index[n] = -1
             end
             cell_list.start_index[i, j, k] = n
         end
