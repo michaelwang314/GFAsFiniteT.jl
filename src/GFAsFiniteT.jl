@@ -38,5 +38,5 @@ module GFAsFiniteT
     include("integrators.jl")
     include("system.jl")
 
-    include("visualizer/Visualizer.jl")
+    #include("visualizer/Visualizer.jl")
 end
