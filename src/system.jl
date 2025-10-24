@@ -170,5 +170,3 @@ function load(filename::String)
 
     return object
 end
-
-"TESTING GIT STUFF"
