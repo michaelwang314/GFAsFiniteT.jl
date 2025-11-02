@@ -40,7 +40,7 @@ function LennardJones(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}
 end
 
 function compute_forces!(lj::LennardJones)
-    @use_threads lj.multithreaded for particle in lj.neighbor_list.particles
+    @inbounds @use_threads lj.multithreaded for particle in lj.neighbor_list.particles
         x, y, z = particle.position
         i = floor(Int64, mod(x, lj.box[1]) / lj.neighbor_list.cell_sizes[1])
         j = floor(Int64, mod(y, lj.box[2]) / lj.neighbor_list.cell_sizes[2])
@@ -116,7 +116,7 @@ function Morse(params::Vector{Tuple{Symbol, Symbol, Dict{Symbol, Float64}}}, nei
 end
 
 function compute_forces!(m::Morse)
-    @use_threads m.multithreaded for particle in m.neighbor_list.particles
+    @inbounds @use_threads m.multithreaded for particle in m.neighbor_list.particles
         x, y, z = particle.position
         i = floor(Int64, mod(x, m.box[1]) / m.neighbor_list.cell_sizes[1])
         j = floor(Int64, mod(y, m.box[2]) / m.neighbor_list.cell_sizes[2])
@@ -166,7 +166,7 @@ end
 HarmonicBond(k::Float64, r0::Float64, bond_list::BondList, box::Vector{Float64}; multithreaded::Bool = false) = HarmonicBond(k, r0, bond_list, box, multithreaded)
 
 function compute_forces!(hb::HarmonicBond)
-    @use_threads hb.multithreaded for (particle, neighbors) in hb.bond_list.bonds
+    @inbounds @use_threads hb.multithreaded for (particle, neighbors) in hb.bond_list.bonds
         for neighbor in neighbors
             Δx, Δy, Δz = correct_for_periodicity(particle.position[1] - neighbor.position[1], particle.position[2] - neighbor.position[2], particle.position[3] - neighbor.position[3], hb.box)
             coef = -hb.k * (hb.r0 == 0.0 ? 1.0 : 1.0 - hb.r0 / sqrt(Δx^2 + Δy^2 + Δz^2))
