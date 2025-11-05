@@ -7,3 +7,6 @@
 - allow 2D simulations
 - add StaticHarmonicTrap and MovingHarmonicTrap (uses function for position)
 - check if converting start_id to Vector instead of Array{, 3} is better
+- Change BondList to FixedBondList and add a DynamicBondList.  
+    - change compute_force! do deal with interaction that use DynamicBondList
+    - Restructure how forces are computed so that there's no need to type many repetative functions for each new interaction
