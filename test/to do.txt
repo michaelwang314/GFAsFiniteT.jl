@@ -10,3 +10,4 @@
 - Change BondList to FixedBondList and add a DynamicBondList.  
     - change compute_force! do deal with interaction that use DynamicBondList
     - Restructure how forces are computed so that there's no need to type many repetative functions for each new interaction
+- fixed bind_closest to exclude bonds between particles on save body
